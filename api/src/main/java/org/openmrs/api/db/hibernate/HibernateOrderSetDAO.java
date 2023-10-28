@@ -11,10 +11,13 @@ package org.openmrs.api.db.hibernate;
 
 import java.util.List;
 
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
+import org.openmrs.BaseOpenmrsObject;
 import org.openmrs.OrderSet;
 import org.openmrs.OrderSetAttribute;
 import org.openmrs.OrderSetAttributeType;
@@ -35,24 +38,28 @@ import org.openmrs.api.db.OrderSetDAO;
  * @since 1.12
  */
 public class HibernateOrderSetDAO implements OrderSetDAO {
-	
+
 	/**
 	 * Hibernate session factory
 	 */
 	private SessionFactory sessionFactory;
-	
+
 	public HibernateOrderSetDAO() {
 	}
-	
+
 	/**
-	 * Set session factory
+	 * Sets the Hibernate SessionFactory.
+	 * <p>
+	 * The SessionFactory is used to create database sessions for interacting with the database.
+	 * It's essential for database operations and interactions.
+	 * </p>
 	 *
-	 * @param sessionFactory
+	 * @param sessionFactory the Hibernate SessionFactory to be set
 	 */
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#save(OrderSet)
 	 */
@@ -62,54 +69,57 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 		session.saveOrUpdate(orderSet);
 		return orderSet;
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#getOrderSets(boolean)
 	 */
 	@Override
 	public List<OrderSet> getOrderSets(boolean includeRetired) throws DAOException {
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(OrderSet.class, "orderSet");
-		
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<OrderSet> query = cb.createQuery(OrderSet.class);
+		Root<OrderSet> root = query.from(OrderSet.class);
+
 		if (!includeRetired) {
-			crit.add(Restrictions.eq("retired", Boolean.FALSE));
+			query.where(cb.equal(root.get("retired"), Boolean.FALSE));
 		}
-		return crit.list();
+		return session.createQuery(query).getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#getOrderSetById(Integer)
 	 */
 	@Override
 	public OrderSet getOrderSetById(Integer orderSetId) throws DAOException {
-		return (OrderSet) sessionFactory.getCurrentSession().get(OrderSet.class, orderSetId);
+		return sessionFactory.getCurrentSession().find(OrderSet.class, orderSetId);
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#getOrderSetByUniqueUuid(String)
 	 */
 	@Override
 	public OrderSet getOrderSetByUniqueUuid(String orderSetUuid) throws DAOException {
-		return (OrderSet) sessionFactory.getCurrentSession().createQuery("from OrderSet o where o.uuid = :uuid").setString(
-		    "uuid", orderSetUuid).uniqueResult();
+		return getUniqueEntityByUUID(OrderSet.class, orderSetUuid);
 	}
-	
 
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#getOrderSetMemberByUuid(String)
 	 */
 	@Override
 	public OrderSetMember getOrderSetMemberByUuid(String uuid) throws DAOException {
-		return (OrderSetMember) sessionFactory.getCurrentSession().createQuery("from OrderSetMember osm where osm.uuid = :uuid").setString(
-				"uuid", uuid).uniqueResult();
+		return getUniqueEntityByUUID(OrderSetMember.class, uuid);
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.OrderSetDAO#getAllOrderSetAttributeTypes()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<OrderSetAttributeType> getAllOrderSetAttributeTypes() {
-		return sessionFactory.getCurrentSession().createCriteria(OrderSetAttributeType.class).list();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<OrderSetAttributeType> query = cb.createQuery(OrderSetAttributeType.class);
+
+		return session.createQuery(query).getResultList();
 	}
 
 	/**
@@ -117,7 +127,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttributeType getOrderSetAttributeType(Integer id) {
-		return sessionFactory.getCurrentSession().get(OrderSetAttributeType.class, id);
+		return sessionFactory.getCurrentSession().find(OrderSetAttributeType.class, id);
 	}
 
 	/**
@@ -125,8 +135,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttributeType getOrderSetAttributeTypeByUuid(String uuid) {
-		return (OrderSetAttributeType) sessionFactory.getCurrentSession().createCriteria(OrderSetAttributeType.class).add(
-		    Restrictions.eq("uuid", uuid)).uniqueResult();
+		return getUniqueEntityByUUID(OrderSetAttributeType.class, uuid);
 	}
 
 	/**
@@ -151,8 +160,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttribute getOrderSetAttributeByUuid(String uuid) {
-		return (OrderSetAttribute) sessionFactory.getCurrentSession().createCriteria(OrderSetAttribute.class).add(
-		    Restrictions.eq("uuid", uuid)).uniqueResult();
+		return getUniqueEntityByUUID(OrderSetAttribute.class, uuid);
 	}
 
 	/**
@@ -160,8 +168,22 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttributeType getOrderSetAttributeTypeByName(String name) {
-		return (OrderSetAttributeType) sessionFactory.getCurrentSession().createCriteria(OrderSetAttributeType.class).add(
-		    Restrictions.eq("name", name)).uniqueResult();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<OrderSetAttributeType> query = cb.createQuery(OrderSetAttributeType.class);
+		Root<OrderSetAttributeType> root = query.from(OrderSetAttributeType.class);
+		
+		query.where(cb.equal(root.get("name"), name));
+		return session.createQuery(query).uniqueResult();
 	}
 
+	private <T extends BaseOpenmrsObject> T getUniqueEntityByUUID(Class<T> entityClass, String uuid) throws DAOException {
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<T> query = cb.createQuery(entityClass);
+		Root<T> root = query.from(entityClass);
+
+		query.where(cb.equal(root.get("uuid"), uuid));
+		return session.createQuery(query).uniqueResult();
+	}
 }
