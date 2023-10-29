@@ -99,7 +99,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSet getOrderSetByUniqueUuid(String orderSetUuid) throws DAOException {
-		return getUniqueEntityByUUID(OrderSet.class, orderSetUuid);
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, OrderSet.class, orderSetUuid);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetMember getOrderSetMemberByUuid(String uuid) throws DAOException {
-		return getUniqueEntityByUUID(OrderSetMember.class, uuid);
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, OrderSetMember.class, uuid);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttributeType getOrderSetAttributeTypeByUuid(String uuid) {
-		return getUniqueEntityByUUID(OrderSetAttributeType.class, uuid);
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, OrderSetAttributeType.class, uuid);
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 	 */
 	@Override
 	public OrderSetAttribute getOrderSetAttributeByUuid(String uuid) {
-		return getUniqueEntityByUUID(OrderSetAttribute.class, uuid);
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, OrderSetAttribute.class, uuid);
 	}
 
 	/**
@@ -174,16 +174,6 @@ public class HibernateOrderSetDAO implements OrderSetDAO {
 		Root<OrderSetAttributeType> root = query.from(OrderSetAttributeType.class);
 		
 		query.where(cb.equal(root.get("name"), name));
-		return session.createQuery(query).uniqueResult();
-	}
-
-	private <T extends BaseOpenmrsObject> T getUniqueEntityByUUID(Class<T> entityClass, String uuid) throws DAOException {
-		Session session = sessionFactory.getCurrentSession();
-		CriteriaBuilder cb = session.getCriteriaBuilder();
-		CriteriaQuery<T> query = cb.createQuery(entityClass);
-		Root<T> root = query.from(entityClass);
-
-		query.where(cb.equal(root.get("uuid"), uuid));
 		return session.createQuery(query).uniqueResult();
 	}
 }

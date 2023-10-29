@@ -9,21 +9,21 @@
  */
 package org.openmrs.api.db.hibernate;
 
-import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.FlushMode;
 import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jdbc.Work;
 import org.hibernate.mapping.Column;
@@ -93,58 +93,73 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 		
 		return gp.getPropertyValue();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.AdministrationDAO#getGlobalPropertyObject(java.lang.String)
 	 */
 	@Override
 	public GlobalProperty getGlobalPropertyObject(String propertyName) {
+		Session session = sessionFactory.getCurrentSession();
+
 		if (isDatabaseStringComparisonCaseSensitive()) {
-			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(GlobalProperty.class);
-			return (GlobalProperty) criteria.add(Restrictions.eq(PROPERTY, propertyName).ignoreCase())
-			        .uniqueResult();
-		} else {
-			return (GlobalProperty) sessionFactory.getCurrentSession().get(GlobalProperty.class, propertyName);
-		}
+			CriteriaBuilder cb = session.getCriteriaBuilder();
+			CriteriaQuery<GlobalProperty> query = cb.createQuery(GlobalProperty.class);
+			Root<GlobalProperty> root = query.from(GlobalProperty.class);
+			
+			query.where(cb.equal(cb.lower(root.get(PROPERTY)), propertyName.toLowerCase()));
+			
+			return session.createQuery(query).uniqueResult();
+		} 
+		return sessionFactory.getCurrentSession().get(GlobalProperty.class, propertyName);
 	}
-	
+
 	@Override
 	public GlobalProperty getGlobalPropertyByUuid(String uuid) throws DAOException {
-
-		return (GlobalProperty) sessionFactory.getCurrentSession()
-		        .createQuery("from GlobalProperty t where t.uuid = :uuid").setString("uuid", uuid).uniqueResult();
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, GlobalProperty.class, uuid);
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.AdministrationDAO#getAllGlobalProperties()
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<GlobalProperty> getAllGlobalProperties() throws DAOException {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(GlobalProperty.class);
-		return criteria.addOrder(Order.asc(PROPERTY)).list();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<GlobalProperty> query = cb.createQuery(GlobalProperty.class);
+		Root<GlobalProperty> root = query.from(GlobalProperty.class);
+
+		query.orderBy(cb.asc(root.get(PROPERTY)));
+
+		return session.createQuery(query).getResultList();
 	}
-	
-	/**
-	 * @see org.openmrs.api.db.AdministrationDAO#getGlobalPropertiesByPrefix(java.lang.String)
-	 */
+
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<GlobalProperty> getGlobalPropertiesByPrefix(String prefix) {
-		return sessionFactory.getCurrentSession().createCriteria(GlobalProperty.class)
-		        .add(Restrictions.ilike(PROPERTY, prefix, MatchMode.START)).list();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<GlobalProperty> query = cb.createQuery(GlobalProperty.class);
+		Root<GlobalProperty> root = query.from(GlobalProperty.class);
+		
+		query.where(cb.like(cb.lower(root.get(PROPERTY)), prefix.toLowerCase() + "%"));
+		
+		return session.createQuery(query).getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.AdministrationDAO#getGlobalPropertiesBySuffix(java.lang.String)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<GlobalProperty> getGlobalPropertiesBySuffix(String suffix) {
-		return sessionFactory.getCurrentSession().createCriteria(GlobalProperty.class)
-		        .add(Restrictions.ilike(PROPERTY, suffix, MatchMode.END)).list();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<GlobalProperty> query = cb.createQuery(GlobalProperty.class);
+		Root<GlobalProperty> root = query.from(GlobalProperty.class);
+
+		query.where(cb.like(cb.lower(root.get(PROPERTY)), "%" + suffix.toLowerCase()));
+
+		return session.createQuery(query).getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.AdministrationDAO#deleteGlobalProperty(GlobalProperty)
 	 */

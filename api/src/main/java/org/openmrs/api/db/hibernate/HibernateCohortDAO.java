@@ -9,10 +9,17 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.CriteriaSpecification;
 import org.hibernate.criterion.Disjunction;
@@ -21,6 +28,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Cohort;
 import org.openmrs.CohortMembership;
+import org.openmrs.OrderSetAttributeType;
 import org.openmrs.api.db.CohortDAO;
 import org.openmrs.api.db.DAOException;
 
@@ -57,47 +65,58 @@ public class HibernateCohortDAO implements CohortDAO {
 	 * @see org.openmrs.api.db.CohortDAO#getCohortsContainingPatientId(Integer, boolean, Date)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<Cohort> getCohortsContainingPatientId(Integer patientId, boolean includeVoided,
-	                                                  Date asOfDate) throws DAOException {
-		Disjunction orEndDate = Restrictions.disjunction();
-		orEndDate.add(Restrictions.isNull("m.endDate"));
-		orEndDate.add(Restrictions.gt("m.endDate", asOfDate));
+													  Date asOfDate) throws DAOException {
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Cohort> query = cb.createQuery(Cohort.class);
+		Root<Cohort> root = query.from(Cohort.class);
 
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Cohort.class);
-		criteria.createAlias("memberships", "m");
+		Join<Cohort, CohortMembership> membershipJoin = root.join("memberships");
+
+		List<Predicate> predicates = new ArrayList<>();
+
+		predicates.add(cb.equal(membershipJoin.get("patientId"), patientId));
+
 		if (asOfDate != null) {
-			criteria.add(Restrictions.le("m.startDate", asOfDate));
-			criteria.add(orEndDate);
+			Predicate startDateLtPredicate = cb.lessThanOrEqualTo(membershipJoin.get("startDate"), asOfDate);
+			predicates.add(startDateLtPredicate);
+
+			Predicate endDateNullPredicate = cb.isNull(membershipJoin.get("endDate"));
+			Predicate endDateGtPredicate = cb.greaterThan(membershipJoin.get("endDate"), asOfDate);
+			Predicate orEndDatePredicate = cb.or(endDateNullPredicate, endDateGtPredicate);
+			predicates.add(orEndDatePredicate);
 		}
-		criteria.add(Restrictions.eq("m.patientId", patientId));
-		criteria.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
-		
+
+		predicates.add(cb.equal(membershipJoin.get("patientId"), patientId));
+
 		if (!includeVoided) {
-			criteria.add(Restrictions.eq(VOIDED, includeVoided));
+			predicates.add(cb.equal(root.get(VOIDED), includeVoided));
 		}
-		return criteria.list();
+		
+		query.distinct(true);
+		query.where(predicates.toArray(new Predicate[0]));
+
+		return session.createQuery(query).getResultList();
 	}
 
+	
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#getCohortByUuid(java.lang.String)
 	 */
 	@Override
 	public Cohort getCohortByUuid(String uuid) {
-		return (Cohort) sessionFactory.getCurrentSession().createQuery("from Cohort c where c.uuid = :uuid").setString(
-			"uuid", uuid).uniqueResult();
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, Cohort.class, uuid);
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#getCohortMembershipByUuid(java.lang.String)
 	 */
 	@Override
 	public CohortMembership getCohortMembershipByUuid(String uuid) {
-		return (CohortMembership) sessionFactory.getCurrentSession()
-				.createQuery("from CohortMembership m where m.uuid = :uuid")
-				.setString("uuid", uuid).uniqueResult();
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, CohortMembership.class, uuid);
 	}
-
+	
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#deleteCohort(org.openmrs.Cohort)
 	 */
@@ -106,47 +125,58 @@ public class HibernateCohortDAO implements CohortDAO {
 		sessionFactory.getCurrentSession().delete(cohort);
 		return null;
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#getCohorts(java.lang.String)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<Cohort> getCohorts(String nameFragment) throws DAOException {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Cohort.class);
-		criteria.add(Restrictions.ilike("name", nameFragment, MatchMode.ANYWHERE));
-		criteria.addOrder(Order.asc("name"));
-		return criteria.list();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Cohort> query = cb.createQuery(Cohort.class);
+		Root<Cohort> root = query.from(Cohort.class);
+		
+		query.where(cb.like(cb.lower(root.get("name")), "%" + nameFragment.toLowerCase() + "%"));
+		query.orderBy(cb.asc(root.get("name")));
+		
+		return session.createQuery(query).getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#getAllCohorts(boolean)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<Cohort> getAllCohorts(boolean includeVoided) throws DAOException {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Cohort.class);
-		
-		criteria.addOrder(Order.asc("name"));
-		
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Cohort> query = cb.createQuery(Cohort.class);
+		Root<Cohort> root = query.from(Cohort.class);
+
+		List<Predicate> predicates = new ArrayList<>();
+
 		if (!includeVoided) {
-			criteria.add(Restrictions.eq(VOIDED, false));
+			predicates.add(cb.equal(root.get(VOIDED), false));
 		}
-		
-		return (List<Cohort>) criteria.list();
+
+		query.where(predicates.toArray(new Predicate[0]));
+		query.orderBy(cb.asc(root.get("name")));
+
+		return session.createQuery(query).getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.CohortDAO#getCohort(java.lang.String)
 	 */
 	@Override
 	public Cohort getCohort(String name) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Cohort.class);
-		
-		criteria.add(Restrictions.eq("name", name));
-		criteria.add(Restrictions.eq(VOIDED, false));
-		
-		return (Cohort) criteria.uniqueResult();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Cohort> query = cb.createQuery(Cohort.class);
+		Root<Cohort> root = query.from(Cohort.class);
+
+		query.where(cb.equal(root.get("name"), name), cb.equal(root.get(VOIDED), false));
+
+		return session.createQuery(query).uniqueResult();
 	}
 	
 	/**
@@ -157,22 +187,34 @@ public class HibernateCohortDAO implements CohortDAO {
 		sessionFactory.getCurrentSession().saveOrUpdate(cohort);
 		return cohort;
 	}
-	
+
 	@Override
 	public List<CohortMembership> getCohortMemberships(Integer patientId, Date activeOnDate, boolean includeVoided) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(CohortMembership.class);
-		criteria.add(Restrictions.eq("patientId", patientId));
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<CohortMembership> query = cb.createQuery(CohortMembership.class);
+		Root<CohortMembership> root = query.from(CohortMembership.class);
+
+		List<Predicate> predicates = new ArrayList<>();
+
+		predicates.add(cb.equal(root.get("patientId"), patientId));
+
 		if (activeOnDate != null) {
-			criteria.add(Restrictions.le("startDate", activeOnDate));
-			criteria.add(Restrictions.or(
-					Restrictions.isNull("endDate"),
-					Restrictions.ge("endDate", activeOnDate)
-			));
+			predicates.add(cb.lessThanOrEqualTo(root.get("startDate"), activeOnDate));
+
+			Predicate endDateIsNull = cb.isNull(root.get("endDate"));
+			Predicate endDateIsGreater = cb.greaterThanOrEqualTo(root.get("endDate"), activeOnDate);
+
+			predicates.add(cb.or(endDateIsNull, endDateIsGreater));
 		}
+
 		if (!includeVoided) {
-			criteria.add(Restrictions.eq(VOIDED, false));
+			predicates.add(cb.equal(root.get(VOIDED), false));
 		}
-		return criteria.list();
+
+		query.where(predicates.toArray(new Predicate[0]));
+
+		return session.createQuery(query).getResultList();
 	}
 	
 	@Override
