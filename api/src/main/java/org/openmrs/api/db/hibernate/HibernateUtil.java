@@ -11,14 +11,21 @@ package org.openmrs.api.db.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Conjunction;
@@ -33,6 +40,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.proxy.HibernateProxy;
 import org.openmrs.BaseOpenmrsObject;
 import org.openmrs.Location;
+import org.openmrs.LocationAttribute;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.attribute.AttributeType;
 import org.slf4j.Logger;
@@ -155,25 +163,31 @@ public class HibernateUtil {
 	 * @param serializedAttributeValues the serialized attribute values
 	 * @param <AT> the attribute type
 	 */
-	public static <AT extends AttributeType> void addAttributeCriteria(Criteria criteria,
-	        Map<AT, String> serializedAttributeValues) {
-		Conjunction conjunction = Restrictions.conjunction();
-		int a = 0;
-		
+	public static <AT extends AttributeType> List<Predicate> getAttributePredicate(CriteriaBuilder cb,
+																				  Root<Location> locationRoot,
+																				  Map<AT, String> serializedAttributeValues) {
+		List<Predicate> predicates = new ArrayList<>();
+
 		for (Map.Entry<AT, String> entry : serializedAttributeValues.entrySet()) {
-			String alias = "attributes" + (a++);
-			DetachedCriteria detachedCriteria = DetachedCriteria.forClass(Location.class).setProjection(Projections.id());
-			detachedCriteria.createAlias("attributes", alias);
-			detachedCriteria.add(Restrictions.eq(alias + ".attributeType", entry.getKey()));
-			detachedCriteria.add(Restrictions.eq(alias + ".valueReference", entry.getValue()));
-			detachedCriteria.add(Restrictions.eq(alias + ".voided", false));
-			
-			conjunction.add(Property.forName("id").in(detachedCriteria));
+			Subquery<Integer> subquery = cb.createQuery().subquery(Integer.class);
+			Root<LocationAttribute> attributeRoot = subquery.from(LocationAttribute.class);
+
+			Path<String> valuePath = attributeRoot.get("valueReference");
+
+			Predicate[] attributePredicates = new Predicate[]{
+				cb.equal(attributeRoot.get("attributeType"), entry.getKey()),
+				cb.equal(valuePath, entry.getValue()),
+				cb.isFalse(attributeRoot.get("voided"))
+			};
+
+			subquery.select(attributeRoot.get("location").get("id")).where(attributePredicates);
+
+			predicates.add(cb.in(locationRoot.get("id")).value(subquery));
 		}
-		
-		criteria.add(conjunction);
+
+		return predicates;
 	}
-	
+
 	/**
 	 * Gets an object as an instance of its persistent type if it is a hibernate proxy otherwise
 	 * returns the same passed in object
@@ -195,7 +209,7 @@ public class HibernateUtil {
 		return persistentObject;
 	}
 
-	public static <T extends BaseOpenmrsObject> T getUniqueEntityByUUID(SessionFactory sessionFactory, Class<T> entityClass, String uuid) throws DAOException {
+	public static <T> T getUniqueEntityByUUID(SessionFactory sessionFactory, Class<T> entityClass, String uuid) throws DAOException {
 		Session session = sessionFactory.getCurrentSession();
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<T> query = cb.createQuery(entityClass);
@@ -203,5 +217,17 @@ public class HibernateUtil {
 
 		query.where(cb.equal(root.get("uuid"), uuid));
 		return session.createQuery(query).uniqueResult();
+	}
+
+	public static <T> ScrollableResults getScrollableResult(SessionFactory sessionFactory, Class<T> type, int fetchSize) {
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+		CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(type);
+		Root<T> root = criteriaQuery.from(type);
+		criteriaQuery.select(root);
+
+		return session.createQuery(criteriaQuery)
+			.setFetchSize(fetchSize)
+			.scroll(ScrollMode.FORWARD_ONLY);
 	}
 }

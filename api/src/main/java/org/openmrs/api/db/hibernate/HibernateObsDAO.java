@@ -9,22 +9,29 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.FlushModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.FlushMode;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Encounter;
@@ -99,32 +106,59 @@ public class HibernateObsDAO implements ObsDAO {
 	 *      Integer, Integer, Date, Date, boolean, String)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<Obs> getObservations(List<Person> whom, List<Encounter> encounters, List<Concept> questions,
-	        List<Concept> answers, List<PERSON_TYPE> personTypes, List<Location> locations, List<String> sortList,
-	        Integer mostRecentN, Integer obsGroupId, Date fromDate, Date toDate, boolean includeVoidedObs,
-	        String accessionNumber) throws DAOException {
-		
-		Criteria criteria = createGetObservationsCriteria(whom, encounters, questions, answers, personTypes, locations,
-		    sortList, mostRecentN, obsGroupId, fromDate, toDate, null, includeVoidedObs, accessionNumber);
-		
-		return criteria.list();
+									 List<Concept> answers, List<PERSON_TYPE> personTypes, List<Location> locations, List<String> sortList,
+									 Integer mostRecentN, Integer obsGroupId, Date fromDate, Date toDate, boolean includeVoidedObs,
+									 String accessionNumber) throws DAOException {
+
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Obs> cq = cb.createQuery(Obs.class);
+		Root<Obs> root = cq.from(Obs.class);
+
+		List<Predicate> predicates = createGetObservationsPredicates(cb, root, whom, encounters, questions, answers,
+			personTypes, locations, obsGroupId, null,  includeVoidedObs,
+			accessionNumber, fromDate, toDate);
+		cq.where(predicates.toArray(new Predicate[0]));
+
+		List<Order> orders = createObservationSortingOrders(cb, root, sortList);
+		if (!orders.isEmpty()) {
+			cq.orderBy(orders);
+		}
+
+		TypedQuery<Obs> query = session.createQuery(cq);
+		applyObservationResultLimitation(query, mostRecentN);
+
+		return query.getResultList();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.ObsDAO#getObservationCount(List, List, List, List, List, List, Integer, Date, Date, List, boolean, String)
 	 */
 	@Override
 	public Long getObservationCount(List<Person> whom, List<Encounter> encounters, List<Concept> questions,
-	        List<Concept> answers, List<PERSON_TYPE> personTypes, List<Location> locations, Integer obsGroupId,
-	        Date fromDate, Date toDate, List<ConceptName> valueCodedNameAnswers, boolean includeVoidedObs,
-	        String accessionNumber) throws DAOException {
-		Criteria criteria = createGetObservationsCriteria(whom, encounters, questions, answers, personTypes, locations,
-		    null, null, obsGroupId, fromDate, toDate, valueCodedNameAnswers, includeVoidedObs, accessionNumber);
-		criteria.setProjection(Projections.rowCount());
-		return (Long) criteria.list().get(0);
+									List<Concept> answers, List<PERSON_TYPE> personTypes, List<Location> locations, Integer obsGroupId,
+									Date fromDate, Date toDate, List<ConceptName> valueCodedNameAnswers, boolean includeVoidedObs,
+									String accessionNumber) throws DAOException {
+
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+
+		Root<Obs> root = cq.from(Obs.class);
+
+		List<Predicate> predicates = createGetObservationsPredicates(cb, root, whom, encounters, questions, answers,
+			personTypes, locations, obsGroupId,
+			valueCodedNameAnswers, includeVoidedObs,
+			accessionNumber, fromDate, toDate);
+
+		cq.select(cb.count(root)).where(predicates.toArray(new Predicate[0]));
+
+		TypedQuery<Long> query = session.createQuery(cq);
+		
+		return query.getSingleResult();
 	}
-	
+
 	/**
 	 * A utility method for creating a criteria based on parameters (which are optional)
 	 *
@@ -143,116 +177,123 @@ public class HibernateObsDAO implements ObsDAO {
 	 * @param accessionNumber
 	 * @return
 	 */
-	private Criteria createGetObservationsCriteria(List<Person> whom, List<Encounter> encounters, List<Concept> questions,
-	        List<Concept> answers, List<PERSON_TYPE> personTypes, List<Location> locations, List<String> sortList,
-	        Integer mostRecentN, Integer obsGroupId, Date fromDate, Date toDate, List<ConceptName> valueCodedNameAnswers,
-	        boolean includeVoidedObs, String accessionNumber) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Obs.class, "obs");
-		
+	private <T> List<Predicate> createGetObservationsPredicates(CriteriaBuilder cb, Root<Obs> root,
+															List<Person> whom, List<Encounter> encounters, List<Concept> questions, List<Concept> answers,
+															List<PERSON_TYPE> personTypes, List<Location> locations, Integer obsGroupId, List<ConceptName> valueCodedNameAnswers,
+															boolean includeVoidedObs, String accessionNumber, Date fromDate, Date toDate) {
+		List<Predicate> predicates = new ArrayList<>();
+
 		if (CollectionUtils.isNotEmpty(whom)) {
-			criteria.add(Restrictions.in("person", whom));
+			predicates.add(root.get("person").in(whom));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(encounters)) {
-			criteria.add(Restrictions.in("encounter", encounters));
+			predicates.add(root.get("encounter").in(encounters));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(questions)) {
-			criteria.add(Restrictions.in("concept", questions));
+			predicates.add(root.get("concept").in(questions));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(answers)) {
-			criteria.add(Restrictions.in("valueCoded", answers));
+			predicates.add(root.get("valueCoded").in(answers));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(personTypes)) {
-			getCriteriaPersonModifier(criteria, personTypes);
+			predicates.addAll(getCriteriaPersonModifier(cb, root, personTypes));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(locations)) {
-			criteria.add(Restrictions.in("location", locations));
+			predicates.add(root.get("location").in(locations));
 		}
-		
-		if (CollectionUtils.isNotEmpty(sortList)) {
-			for (String sort : sortList) {
-				if (StringUtils.isNotEmpty(sort)) {
-					// Split the sort, the field name shouldn't contain space char, so it's safe
-					String[] split = sort.split(" ", 2);
-					String fieldName = split[0];
-					
-					if (split.length == 2 && "asc".equals(split[1])) {
-						/* If asc is specified */
-						criteria.addOrder(Order.asc(fieldName));
-					} else {
-						/* If the field hasn't got ordering or desc is specified */
-						criteria.addOrder(Order.desc(fieldName));
-					}
-				}
-			}
-		}
-		
-		if (mostRecentN != null && mostRecentN > 0) {
-			criteria.setMaxResults(mostRecentN);
-		}
-		
+
 		if (obsGroupId != null) {
-			criteria.createAlias("obsGroup", "og");
-			criteria.add(Restrictions.eq("og.obsId", obsGroupId));
+			Join<Obs, T> obsGroupJoin = root.join("obsGroup", JoinType.LEFT);
+			predicates.add(cb.equal(obsGroupJoin.get("obsId"), obsGroupId));
 		}
 		
 		if (fromDate != null) {
-			criteria.add(Restrictions.ge("obsDatetime", fromDate));
+			predicates.add(cb.greaterThanOrEqualTo(root.get("obsDatetime"), fromDate));
 		}
-		
+
 		if (toDate != null) {
-			criteria.add(Restrictions.le("obsDatetime", toDate));
+			predicates.add(cb.lessThanOrEqualTo(root.get("obsDatetime"), toDate));
 		}
-		
+
 		if (CollectionUtils.isNotEmpty(valueCodedNameAnswers)) {
-			criteria.add(Restrictions.in("valueCodedName", valueCodedNameAnswers));
+			predicates.add(root.get("valueCodedName").in(valueCodedNameAnswers));
 		}
-		
+
 		if (!includeVoidedObs) {
-			criteria.add(Restrictions.eq("voided", false));
+			predicates.add(cb.equal(root.get("voided"), false));
 		}
-		
+
 		if (accessionNumber != null) {
-			criteria.add(Restrictions.eq("accessionNumber", accessionNumber));
+			predicates.add(cb.equal(root.get("accessionNumber"), accessionNumber));
 		}
-		
-		return criteria;
+
+		return predicates;
 	}
-	
+
+	private List<Order> createObservationSortingOrders(CriteriaBuilder cb, Root<Obs> root, List<String> sortList) {
+		List<Order> orders = new ArrayList<>();
+		if (CollectionUtils.isNotEmpty(sortList)) {
+			for (String sort : sortList) {
+				if (StringUtils.isNotEmpty(sort)) {
+					// Split the sort string into field name and order direction
+					String[] sortSplit = sort.split(" ");
+					Path<Object> sortPath = root.get(sortSplit[0]);
+					Order order = (sortSplit.length == 2 && "asc".equalsIgnoreCase(sortSplit[1]))
+						? cb.asc(sortPath)
+						: cb.desc(sortPath);
+					orders.add(order);
+				}
+			}
+		}
+		return orders;
+	}
+
+	private void applyObservationResultLimitation(TypedQuery<Obs> query, Integer mostRecentN) {
+		if (mostRecentN != null && mostRecentN > 0) {
+			query.setMaxResults(mostRecentN);
+		}
+	}
+
 	/**
 	 * Convenience method that adds an expression to the given <code>criteria</code> according to
 	 * what types of person objects is wanted
 	 *
 	 * @param criteria
 	 * @param personType
-	 * @return the given criteria (for chaining)
+	 * @return the given predicates (for chaining)
 	 */
-	private Criteria getCriteriaPersonModifier(Criteria criteria, List<PERSON_TYPE> personTypes) {
+	private List<Predicate> getCriteriaPersonModifier(CriteriaBuilder cb, Root<Obs> root, List<PERSON_TYPE> personTypes) {
+		List<Predicate> modifiers = new ArrayList<>();
+
 		if (personTypes.contains(PERSON_TYPE.PATIENT)) {
-			DetachedCriteria crit = DetachedCriteria.forClass(Patient.class, "patient").setProjection(
-			    Property.forName("patientId"));
-			criteria.add(Subqueries.propertyIn("person.personId", crit));
+			Subquery<Integer> patientSubquery = cb.createQuery().subquery(Integer.class);
+			Root<Patient> patientRoot = patientSubquery.from(Patient.class);
+			patientSubquery.select(patientRoot.get("patientId"));
+			modifiers.add(cb.in(root.join("person").get("personId")).value(patientSubquery));
 		}
-		
+
 		if (personTypes.contains(PERSON_TYPE.USER)) {
-			DetachedCriteria crit = DetachedCriteria.forClass(User.class, "user").setProjection(Property.forName("userId"));
-			criteria.add(Subqueries.propertyIn("person.personId", crit));
+			Subquery<Integer> userSubquery = cb.createQuery().subquery(Integer.class);
+			Root<User> userRoot = userSubquery.from(User.class);
+			userSubquery.select(userRoot.get("userId"));
+			modifiers.add(cb.in(root.join("person").get("personId")).value(userSubquery));
 		}
-		
-		return criteria;
+
+		return modifiers;
 	}
-	
+
+
 	/**
 	 * @see org.openmrs.api.db.ObsDAO#getObsByUuid(java.lang.String)
 	 */
 	@Override
 	public Obs getObsByUuid(String uuid) {
-		return (Obs) sessionFactory.getCurrentSession().createQuery("from Obs o where o.uuid = :uuid").setString("uuid",
-		    uuid).uniqueResult();
+		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, Obs.class, uuid);
 	}
 
 	/**
@@ -260,28 +301,35 @@ public class HibernateObsDAO implements ObsDAO {
 	 */
 	@Override
 	public Obs getRevisionObs(Obs initialObs) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Obs.class, "obs");
-		criteria.add(Restrictions.eq("previousVersion", initialObs));
-		return (Obs) criteria.uniqueResult();
+		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<Obs> cq = cb.createQuery(Obs.class);
+		Root<Obs> root = cq.from(Obs.class);
+
+		cq.where(cb.equal(root.get("previousVersion"), initialObs));
+
+		return session.createQuery(cq).getSingleResult();
 	}
-	
+
 	/**
 	 * @see org.openmrs.api.db.ObsDAO#getSavedStatus(org.openmrs.Obs)
 	 */
 	@Override
 	public Obs.Status getSavedStatus(Obs obs) {
-		// avoid premature flushes when this internal method is called from inside a service method
 		Session session = sessionFactory.getCurrentSession();
-		FlushMode flushMode = session.getHibernateFlushMode();
-		session.setHibernateFlushMode(FlushMode.MANUAL);
+		FlushModeType flushMode = session.getFlushMode();
+		session.setFlushMode(FlushModeType.COMMIT); // Equivalent to Hibernate's FlushMode.MANUAL
 		try {
-			SQLQuery sql = session.createSQLQuery("select status from obs where obs_id = :obsId");
-			sql.setInteger("obsId", obs.getObsId());
-			return Obs.Status.valueOf((String) sql.uniqueResult());
-		}
-		finally {
-			session.setHibernateFlushMode(flushMode);
+			Query sql = session.createNativeQuery("select status from obs where obs_id = :obsId");
+			sql.setParameter("obsId", obs.getObsId());
+			Object result = sql.getSingleResult();
+			return result != null ? Obs.Status.valueOf((String) result) : null;
+		} catch (NoResultException e) {
+			return null;
+		} catch (NonUniqueResultException e) {
+			throw new IllegalStateException("More than one status found for obs_id " + obs.getObsId(), e);
+		} finally {
+			session.setFlushMode(flushMode);
 		}
 	}
-	
 }

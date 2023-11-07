@@ -9,11 +9,23 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import static org.openmrs.api.db.hibernate.HibernateUtil.getScrollableResult;
+
+import java.io.File;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -39,17 +51,6 @@ import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import java.io.File;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Hibernate specific implementation of the {@link ContextDAO}. These methods should not be used
@@ -108,6 +109,7 @@ public class HibernateContextDAO implements ContextDAO {
 			}
 
 			try {
+				
 				candidateUser = session.createQuery(
 					"from User u where (u.username = ?1 or u.systemId = ?2 or u.systemId = ?3) and u.retired = false",
 					User.class)
@@ -249,8 +251,7 @@ public class HibernateContextDAO implements ContextDAO {
 		FlushMode flushMode = sessionFactory.getCurrentSession().getHibernateFlushMode();
 		sessionFactory.getCurrentSession().setHibernateFlushMode(FlushMode.MANUAL);
 		
-		User u = (User) sessionFactory.getCurrentSession().createQuery("from User u where u.uuid = :uuid").setString("uuid",
-		    uuid).uniqueResult();
+		User u = HibernateUtil.getUniqueEntityByUUID(sessionFactory, User.class, uuid);
 		
 		// reset the flush mode to whatever it was before
 		sessionFactory.getCurrentSession().setHibernateFlushMode(flushMode);
@@ -269,7 +270,7 @@ public class HibernateContextDAO implements ContextDAO {
 	
 	/**
 	 * @throws Exception 
-	 * @see org.openmrs.api.db.ContextDAO#createUser(User, String)
+	 * @see org.openmrs.api.db.ContextDAO#createUser(User, String, List) 
 	 */
 	@Override
 	@Transactional
@@ -495,7 +496,7 @@ public class HibernateContextDAO implements ContextDAO {
 			session.setCacheMode(CacheMode.IGNORE);
 			
 			//Scrollable results will avoid loading too many objects in memory
-			try (ScrollableResults results = session.createCriteria(type).setFetchSize(1000).scroll(ScrollMode.FORWARD_ONLY)) {
+			try (ScrollableResults results = getScrollableResult(sessionFactory, type, 1000)) {
 				int index = 0;
 				while (results.next()) {
 					index++;
