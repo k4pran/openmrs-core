@@ -239,7 +239,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	private void deleteSubclassConcept(String tableName, Integer conceptId) {
 		Session session = sessionFactory.getCurrentSession();
 		String delete = "DELETE FROM " + tableName + " WHERE concept_id = :conceptId";
-		Query query = session.createNativeQuery(delete);
+		Query query = session.createQuery(delete);
 		query.setParameter("conceptId", conceptId);
 		query.executeUpdate();
 	}

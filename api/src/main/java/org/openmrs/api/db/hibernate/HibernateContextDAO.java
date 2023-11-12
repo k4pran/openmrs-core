@@ -11,6 +11,9 @@ package org.openmrs.api.db.hibernate;
 
 import static org.openmrs.api.db.hibernate.HibernateUtil.getScrollableResult;
 
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
 import java.io.File;
 import java.net.URL;
 import java.sql.Connection;
@@ -157,10 +160,20 @@ public class HibernateContextDAO implements ContextDAO {
 				}
 			}
 
-			Object[] passwordAndSalt = (Object[]) session
-				.createNativeQuery("select password, salt from users where user_id = ?1")
-				.addScalar("password", StandardBasicTypes.STRING).addScalar("salt", StandardBasicTypes.STRING)
-				.setParameter(1, candidateUser.getUserId()).uniqueResult();
+			Object[] passwordAndSalt;
+			try {
+				TypedQuery<Object[]> query = session.createQuery(
+						"SELECT u.password, u.salt FROM User u WHERE u.userId = :userId", Object[].class)
+					.setParameter("userId", candidateUser.getUserId());
+
+				passwordAndSalt = query.getSingleResult();
+			} catch (NoResultException e) {
+				log.warn("No user found with ID [{}]", candidateUser.getUserId());
+				return null;
+			} catch (NonUniqueResultException e) {
+				log.error("Multiple records found for a single user ID [{}]. Expected only one or none.", candidateUser.getUserId());
+				return null;
+			}
 
 			String passwordOnRecord = (String) passwordAndSalt[0];
 			String saltOnRecord = (String) passwordAndSalt[1];

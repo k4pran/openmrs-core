@@ -320,7 +320,7 @@ public class HibernateObsDAO implements ObsDAO {
 		FlushModeType flushMode = session.getFlushMode();
 		session.setFlushMode(FlushModeType.COMMIT); // Equivalent to Hibernate's FlushMode.MANUAL
 		try {
-			Query sql = session.createNativeQuery("select status from obs where obs_id = :obsId");
+			Query sql = session.createQuery("select status from obs where obs_id = :obsId");
 			sql.setParameter("obsId", obs.getObsId());
 			Object result = sql.getSingleResult();
 			return result != null ? Obs.Status.valueOf((String) result) : null;
