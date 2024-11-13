@@ -21,10 +21,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -34,7 +31,7 @@ import static org.openmrs.module.dtd.ConfigXmlBuilder.withMinimalTags;
 import static org.openmrs.module.dtd.ConfigXmlBuilder.writeToInputStream;
 import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
 
-public class ModuleConfigDTDTest_V1_6 {
+public class ModuleConfigDTDV1_6Test {
 	
 	private static final String[] compatibleVersions = new String[] { "1.6", "1.7" };
 	

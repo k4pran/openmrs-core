@@ -28,7 +28,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -150,9 +149,9 @@ public class ConfigXmlBuilder {
 	
 	private static final String TAG_OPENMRS_VERSION = "openmrsVersion";
 	
-	private static final String TAG_LOAD_MODULES_IF_PRESENT = "loadIfModulesPresent";
+	private static final String TAG_MODULES = "modules";
 	
-	private static final String TAG_OPENMRS_MODULE = "openmrsModule";
+	private static final String TAG_CONDITIONAL_RESOURCE_MODULE = "conditionalResourceModule";
 	
 	private static final String TAG_MODULE_ID = "moduleId";
 	
@@ -623,18 +622,18 @@ public class ConfigXmlBuilder {
 			conditionalResource.getPath().ifPresent(path -> createElementWithText(conditionalResourceElement, TAG_PATH, path));
 			conditionalResource.getOpenmrsVersion().ifPresent(openmrsVersion -> createElementWithText(conditionalResourceElement, TAG_OPENMRS_VERSION, openmrsVersion));
 			
-			if (conditionalResource.getLoadIfModulesPresent().size() > 0) {
-				Element loadIfModulesPresentElement = configXml.createElement(TAG_LOAD_MODULES_IF_PRESENT);
-				conditionalResourceElement.appendChild(loadIfModulesPresentElement);
+			if (conditionalResource.getConditionalResourceModules().size() > 0) {
+				Element conditionalResourceModulesElement = configXml.createElement(TAG_MODULES);
+				conditionalResourceElement.appendChild(conditionalResourceModulesElement);
 				
-				for (OpenMRSModule openMRSModule : conditionalResource.getLoadIfModulesPresent()) {
+				for (OpenMRSModule openMRSModule : conditionalResource.getConditionalResourceModules()) {
 					
-					Element openMRSModuleElement = configXml.createElement(TAG_OPENMRS_MODULE);
+					Element openMRSModuleElement = configXml.createElement(TAG_CONDITIONAL_RESOURCE_MODULE);
 					
 					openMRSModule.getModuleId().ifPresent(moduleId -> createElementWithText(openMRSModuleElement, TAG_MODULE_ID, moduleId));
 					openMRSModule.getVersion().ifPresent(version -> createElementWithText(openMRSModuleElement, TAG_VERSION, version));
 					
-					loadIfModulesPresentElement.appendChild(openMRSModuleElement);
+					conditionalResourceModulesElement.appendChild(openMRSModuleElement);
 				}
 			}
 			
@@ -894,7 +893,7 @@ public class ConfigXmlBuilder {
 		
 		private final Optional<String> path;
 		private final Optional<String> openmrsVersion;
-		private final List<OpenMRSModule> loadIfModulesPresent = new ArrayList<>();
+		private final List<OpenMRSModule> conditionalResourceModules = new ArrayList<>();
 		
 		public ConditionalResource(Optional<String> path, Optional<String> openmrsVersion) {
 			this.path = path;
@@ -910,11 +909,11 @@ public class ConfigXmlBuilder {
 		}
 		
 		public void addModule(OpenMRSModule module) {
-			loadIfModulesPresent.add(module);
+			conditionalResourceModules.add(module);
 		}
 		
-		public List<OpenMRSModule> getLoadIfModulesPresent() {
-			return new ArrayList<>(loadIfModulesPresent);
+		public List<OpenMRSModule> getConditionalResourceModules() {
+			return new ArrayList<>(conditionalResourceModules);
 		}
 	}
 	

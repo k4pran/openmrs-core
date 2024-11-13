@@ -32,7 +32,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.w3c.dom.Document;
 
-public class ModuleConfigDTDTest_V1_7 {
+public class ModuleConfigDTDV1_7Test {
 	
 	private static final String[] compatibleVersions = new String[] { "1.7" };
 	

@@ -118,6 +118,5 @@
 	<!ELEMENT conditionalResource (path, (openmrsVersion | modules))>
 	<!ELEMENT path (#PCDATA)>
 	<!ELEMENT openmrsVersion (#PCDATA)>
-	<!ELEMENT modules (module+)>
-	<!ELEMENT module (moduleId, version)>
+	<!ELEMENT modules (#PCDATA)>
 	<!ELEMENT moduleId (#PCDATA)>
