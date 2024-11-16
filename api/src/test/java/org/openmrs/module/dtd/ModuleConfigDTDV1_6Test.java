@@ -33,7 +33,7 @@ import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
 
 public class ModuleConfigDTDV1_6Test {
 	
-	private static final String[] compatibleVersions = new String[] { "1.6", "1.7" };
+	private static final String[] compatibleVersions = new String[] { "1.6", "1.7", "2.0" };
 	
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
