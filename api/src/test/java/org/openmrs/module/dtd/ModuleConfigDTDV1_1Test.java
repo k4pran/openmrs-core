@@ -32,51 +32,51 @@ import static org.openmrs.module.dtd.ConfigXmlBuilder.writeToInputStream;
 import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
 
 public class ModuleConfigDTDV1_1Test {
-	
-	private static final String[] compatibleVersions = new String[] { "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "2.0" };
-	
+
+	private static final String[] compatibleVersions = new String[] { "1.1" };
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void requireModulesWithVersionsAttributeSet(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
-		
+
 		List<String> modules = new ArrayList<>();
 		modules.add("module1");
 		modules.add("module2");
-		
+
 		List<Optional<String>> versions = new ArrayList<>();
 		versions.add(Optional.of("1.2.3"));
 		versions.add(Optional.of("1.2.4"));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withRequireModules(modules, versions)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void requireModulesWithVersionsAttributeNotSet(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
-		
+
 		List<String> modules = new ArrayList<>();
 		modules.add("module1");
 		modules.add("module2");
-		
+
 		List<Optional<String>> versions = new ArrayList<>();
 		versions.add(Optional.empty());
 		versions.add(Optional.empty());
-		
+
 		Document configXml = withMinimalTags(version)
 				.withRequireModules(modules, versions)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	private static Stream<Arguments> getCompatibleVersions() {
 		return Arrays.stream(compatibleVersions).map(Arguments::of);
 	}

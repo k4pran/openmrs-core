@@ -15,11 +15,17 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DtdTestValidator {
 	
@@ -27,13 +33,27 @@ public class DtdTestValidator {
 	
 	private DtdTestValidator() {
 	}
+
+	protected static Schema getSchema(String configVersion) {
+		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/dtd/config-" + configVersion + ".xsd");
+
+		try {
+			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+			return schemaFactory.newSchema(xsdResource);
+		} catch (SAXException e) {
+			fail(e);
+		}
+		return null;
+	}
 	
-	public static boolean isValidConfigXml(InputStream xml) {
+	public static boolean isValidConfigXml(InputStream xml, String version) {
 		try {
 			DocumentBuilderFactory domFactory;
 			DocumentBuilder builder;
 			domFactory = DocumentBuilderFactory.newInstance();
-			domFactory.setValidating(true);
+			domFactory.setSchema(getSchema(version));
+			domFactory.setNamespaceAware(true);
+			domFactory.setValidating(false);
 			builder = domFactory.newDocumentBuilder();
 			final boolean[] isValidConfig = { true };
 			

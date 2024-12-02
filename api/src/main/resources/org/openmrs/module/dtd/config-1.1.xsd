@@ -19,7 +19,7 @@
 				<xs:element name="require_modules" minOccurs="0">
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="require_module" type="xs:string" maxOccurs="unbounded"/>
+							<xs:element name="require_module" type="requireModule" maxOccurs="unbounded"/>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -154,6 +154,14 @@
 				<xs:attribute name="value" type="xs:string" use="required"/>
 			</xs:restriction>
 		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="requireModule">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="version" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
 	</xs:complexType>
 
 </xs:schema>

@@ -14,7 +14,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,16 +28,17 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * ConfigXmlBuilder is a utility class for tests that need to build a configuration XML file for OpenMRS.
@@ -175,7 +178,9 @@ public class ConfigXmlBuilder {
 	
 	private static final String ATTRIBUTE_VERSION = "version";
 	
-	private static final String PUBLIC_IDENTIFIER = "-//OpenMRS//DTD OpenMRS Config 1.0//EN";
+	private static final String ATTRIBUTE_CONFIG_VERSION = "configVersion";
+	
+	private static final String PUBLIC_IDENTIFIER = "-//OpenMRS//XSD OpenMRS Config 1.0//EN";
 	
 	private static final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	
@@ -200,6 +205,7 @@ public class ConfigXmlBuilder {
 		this.dtdVersion = dtdVersion;
 		initDocument();
 		setDocType();
+		configXml.getDocumentElement().setAttribute(ATTRIBUTE_CONFIG_VERSION, dtdVersion);
 	}
 
 	/**
@@ -222,8 +228,6 @@ public class ConfigXmlBuilder {
 		Source xmlSource = new DOMSource(document);
 		Result outputTarget = new StreamResult(outputStream);
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, document.getDoctype().getPublicId());
-		transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, document.getDoctype().getSystemId());
 		transformer.transform(xmlSource, outputTarget);
 		return new ByteArrayInputStream(outputStream.toByteArray());
 	}
@@ -240,20 +244,23 @@ public class ConfigXmlBuilder {
 		configXml = documentBuilder.newDocument();
 		documentBuilder.newDocument();
 	}
-	
+
 	private void setDocType() throws FileNotFoundException, URISyntaxException {
 		DOMImplementation domImpl = configXml.getImplementation();
 
-		URL dtdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/dtd/config-" + dtdVersion + ".dtd");
-		if (dtdResource == null) {
-			throw new FileNotFoundException("DTD file not found for version " + dtdVersion);
+		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/dtd/config-" + dtdVersion + ".xsd");
+		if (xsdResource == null) {
+			throw new FileNotFoundException("XSD file not found for version " + dtdVersion);
 		}
-		String dtdUri = dtdResource.toURI().toString();
-		DocumentType doctype = domImpl.createDocumentType(MODULE_NAME, PUBLIC_IDENTIFIER, dtdUri);
-		configXml.appendChild(doctype);
+		String xsdUri = xsdResource.toURI().toString();
+
 		Element root = configXml.createElement(MODULE_NAME);
+		root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+		root.setAttribute("xsi:noNamespaceSchemaLocation", xsdUri);
+
 		configXml.appendChild(root);
 	}
+
 	
 	public ConfigXmlBuilder withId(String id) {
 		createElementWithText(TAG_ID, id);

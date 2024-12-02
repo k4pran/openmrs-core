@@ -30,9 +30,9 @@ import static org.openmrs.module.dtd.ConfigXmlBuilder.writeToInputStream;
 import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
 
 public class ModuleConfigDTDV1_2Test {
-	
-	private static final String[] compatibleVersions = new String[] {"1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "2.0" };
-	
+
+	private static final String[] compatibleVersions = new String[] { "1.2" };
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterWithAllValuesSet(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -40,16 +40,16 @@ public class ModuleConfigDTDV1_2Test {
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName1"), Optional.of("paramVal1")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName2"), Optional.of("paramVal2")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName3"), Optional.of("paramVal3")));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterValidWithoutInitParams(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -57,16 +57,16 @@ public class ModuleConfigDTDV1_2Test {
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.empty(), Optional.of("paramVal1")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName2"), Optional.of("paramVal2")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName3"), Optional.of("paramVal3")));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterInvalidWhenMissingFilterName(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -74,16 +74,16 @@ public class ModuleConfigDTDV1_2Test {
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName1"), Optional.of("paramVal1")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName2"), Optional.of("paramVal2")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName3"), Optional.of("paramVal3")));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterInvalidWhenMissingFilterClass(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -91,30 +91,30 @@ public class ModuleConfigDTDV1_2Test {
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName1"), Optional.of("paramVal1")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName2"), Optional.of("paramVal2")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName3"), Optional.of("paramVal3")));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterInvalidWithInitParamNameMissing(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
 		ConfigXmlBuilder.Filter filter = new ConfigXmlBuilder.Filter(Optional.of("FilterName"), Optional.of("FilterClass"));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterInvalidWithInitParamValueMissing(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -122,16 +122,16 @@ public class ModuleConfigDTDV1_2Test {
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName1"), Optional.empty()));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName2"), Optional.of("paramVal2")));
 		filter.addInitParam(new ConfigXmlBuilder.InitParam(Optional.of("paramName3"), Optional.of("paramVal3")));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilter(filter)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterMappingWithUrlPattern(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
@@ -140,54 +140,54 @@ public class ModuleConfigDTDV1_2Test {
 		Document configXml = withMinimalTags(version)
 				.withFilterMapping(filterMapping)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterMappingWithServletName(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
 		ConfigXmlBuilder.FilterMapping filterMapping = new ConfigXmlBuilder.FilterMapping(Optional.of("FilterName"), Optional.empty(), Optional.of("ServletName"));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilterMapping(filterMapping)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertTrue(isValidConfigXml(inputStream));
+			assertTrue(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterMappingWithBothUrlPatternAndServletNameFails(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
 		ConfigXmlBuilder.FilterMapping filterMapping = new ConfigXmlBuilder.FilterMapping(Optional.of("FilterName"), Optional.of("*.jsp"), Optional.of("ServletName"));
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilterMapping(filterMapping)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")
 	public void filterMappingWithNeitherUrlPatternOrServletNameFails(String version) throws ParserConfigurationException, TransformerException, IOException, URISyntaxException {
 		ConfigXmlBuilder.FilterMapping filterMapping = new ConfigXmlBuilder.FilterMapping(Optional.of("FilterName"), Optional.empty(), Optional.empty());
-		
+
 		Document configXml = withMinimalTags(version)
 				.withFilterMapping(filterMapping)
 				.build();
-		
+
 		try (InputStream inputStream = writeToInputStream(configXml)) {
-			assertFalse(isValidConfigXml(inputStream));
+			assertFalse(isValidConfigXml(inputStream, version));
 		}
 	}
-	
+
 	private static Stream<Arguments> getCompatibleVersions() {
 		return Arrays.stream(compatibleVersions).map(Arguments::of);
 	}
