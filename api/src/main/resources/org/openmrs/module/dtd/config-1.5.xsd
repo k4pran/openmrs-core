@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<!-- Root element "module" -->
+	<xs:element name="module">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="id" type="xs:string" />
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="version" type="xs:string" />
+				<xs:element name="package" type="xs:string" />
+				<xs:element name="author" type="xs:string" />
+				<xs:element name="description" type="xs:string"/>
+				<xs:element name="activator" type="xs:string"/>
+				<xs:element name="updateURL" type="xs:string" minOccurs="0"/>
+				<xs:element name="require_version" type="xs:string" minOccurs="0"/>
+				<xs:element name="require_database_version" type="xs:string" minOccurs="0"/>
+
+				<xs:element name="require_modules" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="require_module" type="requireModule" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="aware_of_modules" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="aware_of_module" type="AwareOfModule" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+
+				<xs:element name="mandatory" type="xs:string" minOccurs="0"/>
+
+				<xs:element name="library" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:complexContent>
+							<xs:restriction base="xs:anyType">
+								<xs:attribute name="id" type="xs:string" use="required"/>
+								<xs:attribute name="path" type="xs:string" use="required"/>
+								<xs:attribute name="type" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="resources"/>
+											<xs:enumeration value="library"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:restriction>
+						</xs:complexContent>
+					</xs:complexType>
+				</xs:element>
+				
+				<xs:element name="extension" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="point" type="xs:string"/>
+							<xs:element name="class" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="advice" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="point" type="xs:string"/>
+							<xs:element name="class" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="privilege" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="name" type="xs:string"/>
+							<xs:element name="description" type="xs:string" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="globalProperty" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="property" type="xs:string"/>
+							<xs:element name="defaultValue" type="xs:string" minOccurs="0"/>
+							<xs:element name="description" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				
+				<xs:element name="dwr" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="allow" type="allowType"/>
+							<xs:element name="signatures" type="xs:string" minOccurs="0"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				
+				<xs:element name="servlet" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="servlet-name" type="xs:string"/>
+							<xs:element name="servlet-class" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="filter" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="filter-name" type="xs:string"/>
+							<xs:element name="filter-class" type="xs:string"/>
+							<xs:element name="init-param" type="InitParam" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="filter-mapping" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="filter-name" type="xs:string"/>
+							<xs:choice>
+								<xs:element name="url-pattern" type="xs:string"/>
+								<xs:element name="servlet-name" type="xs:string"/>
+							</xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+
+				<xs:element name="messages" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="lang" type="xs:string"/>
+							<xs:element name="file" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="mappingFiles" type="xs:string" minOccurs="0"/>
+				<xs:element name="packagesWithMappedClasses" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+			
+			<xs:attribute name="configVersion" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="paramType">
+		<xs:complexContent>
+			<xs:restriction base="xs:anyType">
+				<xs:attribute name="name" type="xs:string" use="required"/>
+				<xs:attribute name="value" type="xs:string" use="required"/>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="createType">
+		<xs:sequence>
+			<xs:element name="param" type="paramType"/>
+			<xs:element name="include" type="xs:string" maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="creator" type="xs:string" use="required"/>
+		<xs:attribute name="javascript" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="allowType">
+		<xs:sequence>
+			<xs:element name="create" type="createType" maxOccurs="unbounded" minOccurs="0"/>
+			<xs:element name="convert" type="convert" maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="convert">
+		<xs:sequence>
+			<xs:element name="param" type="param" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="converter" type="xs:string" use="required"/>
+		<xs:attribute name="match" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="param">
+		<xs:complexContent>
+			<xs:restriction base="xs:anyType">
+				<xs:attribute name="name" type="xs:string" use="required"/>
+				<xs:attribute name="value" type="xs:string" use="required"/>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="requireModule">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="version" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="InitParam">
+		<xs:sequence>
+			<xs:element name="param-name" type="xs:string" />
+			<xs:element name="param-value" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="AwareOfModule">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="version" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+</xs:schema>
