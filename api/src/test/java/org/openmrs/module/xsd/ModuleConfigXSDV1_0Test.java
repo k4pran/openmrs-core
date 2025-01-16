@@ -7,18 +7,15 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.dtd;
+package org.openmrs.module.xsd;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.w3c.dom.Document;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,12 +27,12 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.openmrs.module.dtd.ConfigXmlBuilder.*;
-import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
+import static org.openmrs.module.xsd.ConfigXmlBuilder.*;
+import static org.openmrs.module.xsd.XsdTestValidator.isValidConfigXml;
 
-public class ModuleConfigDTDV1_0Test {
+public class ModuleConfigXSDV1_0Test {
 	
-	private static final String[] compatibleVersions = new String[] { "1.0" };
+	private static final String[] compatibleVersions = new String[] { "1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7" };
 	
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")

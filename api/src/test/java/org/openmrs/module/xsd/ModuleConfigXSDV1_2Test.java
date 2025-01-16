@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.dtd;
+package org.openmrs.module.xsd;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,13 +25,13 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.openmrs.module.dtd.ConfigXmlBuilder.withMinimalTags;
-import static org.openmrs.module.dtd.ConfigXmlBuilder.writeToInputStream;
-import static org.openmrs.module.dtd.DtdTestValidator.isValidConfigXml;
+import static org.openmrs.module.xsd.ConfigXmlBuilder.withMinimalTags;
+import static org.openmrs.module.xsd.ConfigXmlBuilder.writeToInputStream;
+import static org.openmrs.module.xsd.XsdTestValidator.isValidConfigXml;
 
-public class ModuleConfigDTDV1_2Test {
+public class ModuleConfigXSDV1_2Test {
 
-	private static final String[] compatibleVersions = new String[] { "1.2" };
+	private static final String[] compatibleVersions = new String[] { "1.2", "1.3", "1.4", "1.5", "1.6", "1.7" };
 
 	@ParameterizedTest
 	@MethodSource("getCompatibleVersions")

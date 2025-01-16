@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.dtd;
+package org.openmrs.module.xsd;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +27,15 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class DtdTestValidator {
+public class XsdTestValidator {
 	
-	private static final Logger log = LoggerFactory.getLogger(DtdTestValidator.class);
+	private static final Logger log = LoggerFactory.getLogger(XsdTestValidator.class);
 	
-	private DtdTestValidator() {
+	private XsdTestValidator() {
 	}
 
 	protected static Schema getSchema(String configVersion) {
-		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/dtd/config-" + configVersion + ".xsd");
+		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/xsd/config-" + configVersion + ".xsd");
 
 		try {
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);

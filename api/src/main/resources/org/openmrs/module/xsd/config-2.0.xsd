@@ -24,6 +24,22 @@
 					</xs:complexType>
 				</xs:element>
 
+				<xs:element name="aware_of_modules" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="aware_of_module" type="AwareOfModule" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="start_before_modules" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="module" type="StartBeforeModuleType" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
 				<xs:element name="mandatory" type="xs:string" minOccurs="0"/>
 
 				<xs:element name="library" minOccurs="0" maxOccurs="unbounded">
@@ -96,6 +112,7 @@
 						<xs:sequence>
 							<xs:element name="servlet-name" type="xs:string"/>
 							<xs:element name="servlet-class" type="xs:string"/>
+							<xs:element name="init-param" type="InitParam" minOccurs="0" maxOccurs="unbounded"/>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -133,8 +150,28 @@
 				</xs:element>
 
 				<xs:element name="mappingFiles" type="xs:string" minOccurs="0"/>
-			</xs:sequence>
+				<xs:element name="packagesWithMappedClasses" type="xs:string" minOccurs="0"/>
 
+				<xs:element name="conditionalResources" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="conditionalResource" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="path" type="xs:string"/>
+										<xs:choice>
+											<xs:element name="openmrsVersion" type="xs:string"/>
+											<xs:element name="modules" type="ConditionalResourceModulesType"/>
+										</xs:choice>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+			</xs:sequence>
+			
 			<xs:attribute name="configVersion" type="xs:string" use="required"/>
 		</xs:complexType>
 	</xs:element>
@@ -196,4 +233,33 @@
 		</xs:sequence>
 	</xs:complexType>
 
+	<xs:complexType name="AwareOfModule">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="version" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<xs:complexType name="StartBeforeModuleType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="version" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="ConditionalResourceModulesType">
+		<xs:sequence>
+			<xs:element name="conditionalResourceModule" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="moduleId" type="xs:string"/>
+						<xs:element name="version" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
 </xs:schema>

@@ -7,20 +7,16 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.dtd;
+package org.openmrs.module.xsd;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -28,8 +24,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -44,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * ConfigXmlBuilder is a utility class for tests that need to build a configuration XML file for OpenMRS.
  * It provides a fluent API to add various elements to the configuration file.
  *
- * The structure of the XML is dictated by a Document Type Definition (DTD), 
+ * The structure of the XML is dictated by a XML Schema Definition (XSD), 
  * the version of which is passed into the constructor of this class.
  *
  * Note: This class is intended for use in testing scenarios only. Do not use it for 
@@ -184,15 +178,15 @@ public class ConfigXmlBuilder {
 	
 	private static final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	
-	private final String dtdVersion;
+	private final String xsdVersion;
 	
 	private Document configXml;
 
 	/**
 	 * Constructs a new ConfigXmlBuilder for testing purposes.
 	 *
-	 * @param dtdVersion the version of the DTD (Document Type Definition) to use
-	 *                   for validating the generated XML. The DTD dictates the structure 
+	 * @param xsdVersion the version of the XSD (XML Schema Definition) to use
+	 *                   for validating the generated XML. The XSD dictates the structure 
 	 *                   and permissible values of the XML document. 
 	 *
 	 * @throws ParserConfigurationException if a DocumentBuilder cannot be created which
@@ -201,11 +195,11 @@ public class ConfigXmlBuilder {
 	 * Note: This constructor is intended for use in testing scenarios only. Do not use it for 
 	 * generating configuration XML files for production use.
 	 */
-	public ConfigXmlBuilder(String dtdVersion) throws ParserConfigurationException, FileNotFoundException, URISyntaxException {
-		this.dtdVersion = dtdVersion;
+	public ConfigXmlBuilder(String xsdVersion) throws ParserConfigurationException, FileNotFoundException, URISyntaxException {
+		this.xsdVersion = xsdVersion;
 		initDocument();
 		setDocType();
-		configXml.getDocumentElement().setAttribute(ATTRIBUTE_CONFIG_VERSION, dtdVersion);
+		configXml.getDocumentElement().setAttribute(ATTRIBUTE_CONFIG_VERSION, xsdVersion);
 	}
 
 	/**
@@ -232,8 +226,8 @@ public class ConfigXmlBuilder {
 		return new ByteArrayInputStream(outputStream.toByteArray());
 	}
 	
-	protected static ConfigXmlBuilder withMinimalTags(String dtdVersion) throws ParserConfigurationException, FileNotFoundException, URISyntaxException {
-		return new ConfigXmlBuilder(dtdVersion).withId("basicexample").withName("Basicexample").withVersion("1.2.3")
+	protected static ConfigXmlBuilder withMinimalTags(String xsdVersion) throws ParserConfigurationException, FileNotFoundException, URISyntaxException {
+		return new ConfigXmlBuilder(xsdVersion).withId("basicexample").withName("Basicexample").withVersion("1.2.3")
 				.withPackage("org.openmrs.module.basicexample").withAuthor("Community").withDescription("First module")
 				.withActivator("org.openmrs.module.basicexample.BasicexampleActivator");
 	}
@@ -248,9 +242,9 @@ public class ConfigXmlBuilder {
 	private void setDocType() throws FileNotFoundException, URISyntaxException {
 		DOMImplementation domImpl = configXml.getImplementation();
 
-		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/dtd/config-" + dtdVersion + ".xsd");
+		URL xsdResource = ConfigXmlBuilder.class.getResource("/org/openmrs/module/xsd/config-" + xsdVersion + ".xsd");
 		if (xsdResource == null) {
-			throw new FileNotFoundException("XSD file not found for version " + dtdVersion);
+			throw new FileNotFoundException("XSD file not found for version " + xsdVersion);
 		}
 		String xsdUri = xsdResource.toURI().toString();
 

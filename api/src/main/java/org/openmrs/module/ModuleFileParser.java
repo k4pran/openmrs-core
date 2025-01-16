@@ -9,15 +9,19 @@
  */
 package org.openmrs.module;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +38,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.xerces.dom.DOMInputImpl;
 import org.openmrs.GlobalProperty;
 import org.openmrs.Privilege;
 import org.openmrs.api.context.Context;
@@ -48,7 +53,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * This class will parse an OpenMRS module, specifically its {@code config.xml} file into a {@link org.openmrs.module.Module} object.
@@ -68,6 +76,7 @@ public class ModuleFileParser {
 	private static final String OPENMRS_MODULE_FILE_EXTENSION = ".omod";
 	
 	//https://resources.openmrs.org/doctype/config-1.5.dtd
+	private static final Pattern OPENMRS_XSD_SYSTEM_ID_PATTERN = Pattern.compile("https?://resources.openmrs.org/doctype/(?<config>config-[0-9.]+\\.xsd)");
 	private static final Pattern OPENMRS_DTD_SYSTEM_ID_PATTERN = Pattern.compile("https?://resources.openmrs.org/doctype/(?<config>config-[0-9.]+\\.dtd)");
 	
 	/**
@@ -287,22 +296,47 @@ public class ModuleFileParser {
 	}
 
 	private DocumentBuilder newDocumentBuilder() throws ParserConfigurationException {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
+		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		
+		schemaFactory.setResourceResolver((type, namespaceURI, publicId, systemId, baseURI) -> {
+			Matcher xsdMatcher = OPENMRS_XSD_SYSTEM_ID_PATTERN.matcher(systemId);
+			if (xsdMatcher.matches()) {
+				String xsdFile = xsdMatcher.group("config");
+				InputStream schemaStream = OpenmrsClassLoader.getInstance()
+					.getResourceAsStream("org/openmrs/module/xsd/" + xsdFile);
 
-		// When asked to resolve external entities (such as a
-		// DTD) we return an InputSource
-		// with no data at the end, causing the parser to ignore
-		// the DTD.
-		db.setEntityResolver((publicId, systemId) -> {
-			Matcher dtdMatcher = OPENMRS_DTD_SYSTEM_ID_PATTERN.matcher(systemId);
-			if (dtdMatcher.matches()) {
-				String dtdFile = dtdMatcher.group("config");
-				return new InputSource(OpenmrsClassLoader.getInstance().getResourceAsStream("org/openmrs/module/dtd/" + dtdFile));
+				if (schemaStream != null) {
+					return new DOMInputImpl(publicId, systemId, baseURI, schemaStream, "UTF-8");
+				} else {
+					log.warn("XSD file not found: " + xsdFile);
+				}
 			}
+			return null;
+		});
+
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		try {
+			Schema schema = schemaFactory.newSchema(OpenmrsClassLoader.getInstance()
+				.getResource("org/openmrs/module/xsd/config-1.3.xsd"));
+			dbf.setSchema(schema);
+		} catch (SAXException e) {
+			log.error("Failed to create schema for validation. Fallback to non-schema parsing.", e);
+		}
+
+		dbf.setNamespaceAware(true);
+		dbf.setValidating(false);
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		
+		// disable DTD validation even when defined in DOCTYPE
+		db.setEntityResolver((publicId, systemId) -> {
+//			Matcher dtdMatcher = OPENMRS_DTD_SYSTEM_ID_PATTERN.matcher(systemId);
+//			if (dtdMatcher.matches()) {
+//				String dtdFile = dtdMatcher.group("config");
+//				return new InputSource(OpenmrsClassLoader.getInstance().getResourceAsStream("org/openmrs/module/dtd/" + dtdFile));
+//			}
 			return new InputSource(new StringReader(""));
 		});
-		
+
 		return db;
 	}
 

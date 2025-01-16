@@ -112,6 +112,7 @@
 						<xs:sequence>
 							<xs:element name="servlet-name" type="xs:string"/>
 							<xs:element name="servlet-class" type="xs:string"/>
+							<xs:element name="init-param" type="InitParam" minOccurs="0" maxOccurs="unbounded"/>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -154,7 +155,17 @@
 				<xs:element name="conditionalResources" minOccurs="0">
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="conditionalResource" type="ConditionalResourceType" maxOccurs="unbounded" />
+							<xs:element name="conditionalResource" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="path" type="xs:string"/>
+										<xs:choice>
+											<xs:element name="openmrsVersion" type="xs:string"/>
+											<xs:element name="modules" type="ConditionalResourceModulesType"/>
+										</xs:choice>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -238,13 +249,16 @@
 		</xs:simpleContent>
 	</xs:complexType>
 
-	<xs:complexType name="ConditionalResourceType">
+	<xs:complexType name="ConditionalResourceModulesType">
 		<xs:sequence>
-			<xs:element name="path" type="xs:string"/>
-			<xs:choice>
-				<xs:element name="openmrsVersion" type="xs:string"/>
-				<xs:element name="modules" type="xs:string"/>
-			</xs:choice>
+			<xs:element name="conditionalResourceModule" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="moduleId" type="xs:string"/>
+						<xs:element name="version" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 	
