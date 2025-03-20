@@ -16,7 +16,7 @@ import java.util.TreeSet;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 /**
  * The ConceptNumeric extends upon the Concept object by adding some number range values

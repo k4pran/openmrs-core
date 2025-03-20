@@ -10,8 +10,8 @@
 package org.openmrs.api.db;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.search.FullTextSession;
-import org.hibernate.search.Search;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -29,8 +29,8 @@ public class FullTextSessionFactoryImpl implements FullTextSessionFactory {
 	 * @see FullTextSessionFactory#getFullTextSession()
 	 */
 	@Override
-	public FullTextSession getFullTextSession() {
-		FullTextSession delegateSession = Search.getFullTextSession(sessionFactory.getCurrentSession());
+	public SearchSession getFullTextSession() {
+		SearchSession delegateSession = Search.session(sessionFactory.getCurrentSession());
 		return new DelegatingFullTextSession(delegateSession, eventPublisher);
 	}
 	

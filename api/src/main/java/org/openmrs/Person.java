@@ -22,17 +22,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ContainedIn;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.DocumentId;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Resolution;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,18 +54,15 @@ public class Person extends BaseChangeableOpenmrsData {
 	
 	private Set<PersonAddress> addresses = null;
 	
-	@ContainedIn
 	private Set<PersonName> names = null;
 	
-	@ContainedIn
 	private Set<PersonAttribute> attributes = null;
 	
-	@Field
+	@KeywordField
 	private String gender;
 	
 
-	@Field(analyze = Analyze.YES)
-	@DateBridge(encoding = EncodingType.STRING, resolution = Resolution.DAY)
+	@GenericField
 	private Date birthdate;
 	
 	private Date birthtime;
@@ -78,7 +71,7 @@ public class Person extends BaseChangeableOpenmrsData {
 	
 	private Boolean deathdateEstimated = false;
 	
-	@Field
+	@GenericField
 	private Boolean dead = false;
 	
 	private Date deathDate;
@@ -103,7 +96,7 @@ public class Person extends BaseChangeableOpenmrsData {
 	
 	private String personVoidReason;
 	
-	@Field
+	@GenericField
 	@NotAudited
 	private boolean isPatient;
 	

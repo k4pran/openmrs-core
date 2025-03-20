@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.hibernate.CallbackException;
-import org.hibernate.EntityMode;
 import org.hibernate.Interceptor;
 import org.hibernate.Transaction;
 import org.hibernate.type.Type;
@@ -139,19 +138,6 @@ public class ChainingInterceptor implements Interceptor {
 		return returnValue;
 	}
 	
-	// returns the first non-null response from all interceptors
-	@Override
-	public Object instantiate(String entityName, EntityMode entityMode, Serializable id) {
-		for (Interceptor i : interceptors) {
-			Object o = i.instantiate(entityName, entityMode, id);
-			if (o != null) {
-				return o;
-			}
-		}
-		
-		return null;
-	}
-	
 	@Override
 	public int[] findDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
 	        String[] propertyNames, Type[] types) {
@@ -228,16 +214,6 @@ public class ChainingInterceptor implements Interceptor {
 		for (Interceptor i : interceptors) {
 			i.beforeTransactionCompletion(tx);
 		}
-	}
-	
-	// passes the sql returned from each previous onPrepareStatement onto the next
-	@Override
-	public String onPrepareStatement(String sql) {
-		for (Interceptor i : interceptors) {
-			sql = i.onPrepareStatement(sql);
-		}
-		
-		return sql;
 	}
 	
 	@Override

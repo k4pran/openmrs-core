@@ -9,83 +9,82 @@
  */
 package org.openmrs.api.db;
 
-import java.io.Serializable;
+import java.util.Collection;
 
-import org.apache.lucene.search.Query;
+import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionDelegatorBaseImpl;
 import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.search.FullTextQuery;
-import org.hibernate.search.FullTextSession;
-import org.hibernate.search.FullTextSharedSessionBuilder;
-import org.hibernate.search.MassIndexer;
-import org.hibernate.search.SearchFactory;
-import org.hibernate.search.query.engine.spi.QueryDescriptor;
+import org.hibernate.search.engine.search.query.dsl.SearchQuerySelectStep;
+import org.hibernate.search.mapper.orm.automaticindexing.session.AutomaticIndexingSynchronizationStrategy;
+import org.hibernate.search.mapper.orm.common.EntityReference;
+import org.hibernate.search.mapper.orm.schema.management.SearchSchemaManager;
+import org.hibernate.search.mapper.orm.scope.SearchScope;
+import org.hibernate.search.mapper.orm.search.loading.dsl.SearchLoadingOptionsStep;
+import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.hibernate.search.mapper.orm.work.SearchIndexingPlan;
+import org.hibernate.search.mapper.orm.work.SearchWorkspace;
+import org.hibernate.search.mapper.pojo.work.IndexingPlanSynchronizationStrategy;
+import org.hibernate.search.mapper.pojo.work.SearchIndexingPlanFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * Custom implementation of the {@link FullTextSession} interface that acts a wrapper around a
+ * Custom implementation of the {@link SearchSession} interface that acts a wrapper around a
  * target FullTextSession instance, it actually delegates all the method calls directly to the
- * target except for the {@link FullTextSession#createFullTextQuery(Query, Class[])} method where it
+ * target except for the {@link SearchSession#search(Collection)} (Query, Class[]) method where it
  * first notifies registered listeners of the creation event before returning the newly created
- * {@link FullTextQuery} object. The newly created query object and entity type are passed to the
+ * {@link SearchQuerySelectStep} object. The newly created query object and entity type are passed to the
  * listeners wrapped in a {@link FullTextQueryAndEntityClass} object. <br>
  * <br>
  * An example use case is that a listener can enable/disable filters on the newly created query
  * object.
  */
-public class DelegatingFullTextSession extends SessionDelegatorBaseImpl implements FullTextSession {
+public class DelegatingFullTextSession extends SessionDelegatorBaseImpl implements SearchSession {
 	
 	private static final Logger log = LoggerFactory.getLogger(DelegatingFullTextSession.class);
 	
-	private FullTextSession delegate;
+	private SearchSession delegate;
 	
 	private ApplicationEventPublisher eventPublisher;
 	
-	public DelegatingFullTextSession(FullTextSession delegate, ApplicationEventPublisher eventPublisher) {
-		super((SessionImplementor) delegate, delegate);
+	public DelegatingFullTextSession(SearchSession delegate, ApplicationEventPublisher eventPublisher) {
+		super((SessionImplementor) delegate);
 		this.delegate = delegate;
 		this.eventPublisher = eventPublisher;
 	}
-	
-	/**
-	 * @see FullTextSession#createFullTextQuery(Query, Class[])
-	 */
+
 	@Override
-	public FullTextQuery createFullTextQuery(Query luceneQuery, Class<?>... entities) {
-		if (entities.length > 1) {
-			throw new DAOException("Can't create FullTextQuery for multiple persistent classes");
-		}
+	public <T> SearchQuerySelectStep<?, EntityReference, T, SearchLoadingOptionsStep, ?, ?> search(Class<T> clazz) {
+		log.debug("Creating new SearchQuerySelectStep instance");
 		
-		log.debug("Creating new FullTextQuery instance");
-		
-		Class<?> entityClass = entities[0];
-		FullTextQuery query = delegate.createFullTextQuery(luceneQuery, entityClass);
-		
+		SearchQuerySelectStep<?, EntityReference, T, SearchLoadingOptionsStep, ?, ?> query = delegate.search(clazz);
+
 		log.debug("Notifying FullTextQueryCreated listeners...");
-		
+
 		//Notify listeners, note that we intentionally don't catch any exception from a listener
 		//so that failure should just halt the entire creation operation, this is possible because 
 		//the default ApplicationEventMulticaster in spring fires events serially in the same thread
 		//but has the downside of where a rogue listener can block the entire application.
-		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, entityClass);
+		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, clazz); // todo 
 		eventPublisher.publishEvent(new FullTextQueryCreatedEvent(queryAndClass));
 		
 		return query;
 	}
-	
+
 	@Override
-	public FullTextQuery createFullTextQuery(QueryDescriptor descriptor, Class<?>... entities) {
-		if (entities.length > 1) {
+	public <T> SearchQuerySelectStep<?, EntityReference, T, SearchLoadingOptionsStep, ?, ?> search(Collection<? extends Class<? extends T>> entities) {
+		if (entities.size() > 1) {
 			throw new DAOException("Can't create FullTextQuery for multiple persistent classes");
 		}
+		
+		log.debug("Creating new SearchQuerySelectStep instance");
 
-		log.debug("Creating new FullTextQuery instance");
-
-		Class<?> entityClass = entities[0];
-		FullTextQuery query = delegate.createFullTextQuery(descriptor, entityClass);
-
+		@SuppressWarnings("unchecked") // Suppress unchecked cast warning
+		Class<T> entityClass = (Class<T>) entities.iterator().next();
+		SearchQuerySelectStep<?, EntityReference, T, SearchLoadingOptionsStep, ?, ?> query = delegate.search(entityClass);
+		
 		log.debug("Notifying FullTextQueryCreated listeners...");
 
 		//Notify listeners, note that we intentionally don't catch any exception from a listener
@@ -97,60 +96,64 @@ public class DelegatingFullTextSession extends SessionDelegatorBaseImpl implemen
 
 		return query;
 	}
-	
-	/**
-	 * @see FullTextSession#index(Object)
-	 */
+
 	@Override
-	public <T> void index(T entity) {
-		delegate.index(entity);
+	public <T> SearchQuerySelectStep<?, EntityReference, T, SearchLoadingOptionsStep, ?, ?> search(SearchScope<T> searchScope) {
+		return delegate.search(searchScope);
 	}
-	
-	/**
-	 * @see FullTextSession#getSearchFactory()
-	 */
+
 	@Override
-	public SearchFactory getSearchFactory() {
-		return delegate.getSearchFactory();
+	public SearchSchemaManager schemaManager(Collection<? extends Class<?>> collection) {
+		return delegate.schemaManager(collection);
 	}
-	
-	/**
-	 * @see FullTextSession#purge(Class, Serializable)
-	 */
+
 	@Override
-	public <T> void purge(Class<T> entityType, Serializable id) {
-		delegate.purge(entityType, id);
+	public SearchWorkspace workspace(Collection<? extends Class<?>> collection) {
+		return delegate.workspace(collection);
 	}
-	
-	/**
-	 * @see FullTextSession#purgeAll(Class)
-	 */
+
 	@Override
-	public <T> void purgeAll(Class<T> entityType) {
-		delegate.purgeAll(entityType);
+	public org.hibernate.search.mapper.orm.massindexing.MassIndexer massIndexer(Collection<? extends Class<?>> collection) {
+		return delegate.massIndexer(collection);
 	}
-	
-	/**
-	 * @see FullTextSession#flushToIndexes()
-	 */
+
 	@Override
-	public void flushToIndexes() {
-		delegate.flushToIndexes();
+	public SearchIndexingPlan indexingPlan() {
+		return delegate.indexingPlan();
 	}
-	
-	/**
-	 * @see FullTextSession#createIndexer(Class[])
-	 */
+
 	@Override
-	public MassIndexer createIndexer(Class<?>... types) {
-		return delegate.createIndexer(types);
+	public EntityManager toEntityManager() {
+		return delegate.toEntityManager();
 	}
-	
-	/**
-	 * @see FullTextSession#sessionWithOptions()
-	 */
+
 	@Override
-	public FullTextSharedSessionBuilder sessionWithOptions() {
-		return delegate.sessionWithOptions();
+	public Session toOrmSession() {
+		return delegate.toOrmSession();
+	}
+
+	@Override
+	public void automaticIndexingSynchronizationStrategy(AutomaticIndexingSynchronizationStrategy automaticIndexingSynchronizationStrategy) {
+		delegate.automaticIndexingSynchronizationStrategy(automaticIndexingSynchronizationStrategy);
+	}
+
+	@Override
+	public void indexingPlanSynchronizationStrategy(IndexingPlanSynchronizationStrategy indexingPlanSynchronizationStrategy) {
+		delegate.indexingPlanSynchronizationStrategy(indexingPlanSynchronizationStrategy);
+	}
+
+	@Override
+	public void indexingPlanFilter(SearchIndexingPlanFilter searchIndexingPlanFilter) {
+		delegate.indexingPlanFilter(searchIndexingPlanFilter);
+	}
+
+	@Override
+	public <T> SearchScope<T> scope(Collection<? extends Class<? extends T>> collection) {
+		return delegate.scope(collection);
+	}
+
+	@Override
+	public <T> SearchScope<T> scope(Class<T> aClass, Collection<String> collection) {
+		return delegate.scope(aClass, collection);
 	}
 }

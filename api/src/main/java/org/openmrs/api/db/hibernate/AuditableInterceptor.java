@@ -17,7 +17,7 @@ import java.util.Map;
 
 import org.hibernate.CallbackException;
 import org.hibernate.EmptyInterceptor;
-import org.hibernate.collection.internal.PersistentSet;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.type.Type;
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
@@ -183,8 +183,8 @@ public class AuditableInterceptor extends EmptyInterceptor {
 	}
 	
 	private void handleCollectionChange(Object collection) {
-		if (collection instanceof PersistentSet) {
-			PersistentSet persistentCollection = (PersistentSet) collection; 
+		if (collection instanceof PersistentCollection) {
+			PersistentCollection persistentCollection = (PersistentCollection) collection; 
 			if ("org.openmrs.User.roles".equals(persistentCollection.getRole())) {
 				Object owner = persistentCollection.getOwner();
 				if (owner instanceof User) {

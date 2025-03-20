@@ -214,40 +214,37 @@
 				<version>3.30.2-GA</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.orm</groupId>
 				<artifactId>hibernate-core</artifactId>
 				<version>${hibernateVersion}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.orm</groupId>
 				<artifactId>hibernate-c3p0</artifactId>
 				<version>${hibernateVersion}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-ehcache</artifactId>
+				<groupId>org.hibernate.orm</groupId>
+				<artifactId>hibernate-jcache</artifactId>
 				<version>${hibernateVersion}</version>
-				<exclusions>
-					<!-- Excluding since we are using a newer version where
-					arifactId is ehcache instead of ehcache-core -->
-					<exclusion>
-						<groupId>net.sf.ehcache</groupId>
-						<artifactId>ehcache-core</artifactId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
-				<version>6.1.2.Final</version>
+				<version>${hibernateValidatorVersion}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-search-orm</artifactId>
+				<groupId>org.hibernate.search</groupId>
+				<artifactId>hibernate-search-mapper-orm</artifactId>
 				<version>${hibernateSearchVersion}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.search</groupId>
+				<artifactId>hibernate-search-backend-lucene</artifactId>
+				<version>${hibernateSearchVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate.orm</groupId>
 				<artifactId>hibernate-envers</artifactId>
 				<version>${hibernateVersion}</version>
 			</dependency>
@@ -1232,8 +1229,9 @@
 			 version of Hibernate Search must be compatible with the version of Hibernate and Hibernate must
 			 be compatible with our version of Spring. -->
 		<springVersion>5.3.30</springVersion>
-		<hibernateVersion>5.6.15.Final</hibernateVersion>
-		<hibernateSearchVersion>5.11.12.Final</hibernateSearchVersion>
+		<hibernateVersion>6.6.9.Final</hibernateVersion>
+		<hibernateValidatorVersion>6.2.5.Final</hibernateValidatorVersion>
+		<hibernateSearchVersion>7.2.2.Final</hibernateSearchVersion>
 		<luceneVersion>5.5.5</luceneVersion>
 		<aspectjVersion>1.9.22.1</aspectjVersion>
 		<jacksonVersion>2.18.3</jacksonVersion>
