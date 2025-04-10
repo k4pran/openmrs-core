@@ -594,6 +594,10 @@
 		<property name="sessionFactory" ref="sessionFactory"/>
 	</bean>
 
+<!--	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">-->
+<!--		<property name="entityManagerFactory" ref="sessionFactory"/>-->
+<!--	</bean>-->
+
 
 	<!--  ******************************  MESSAGE SERVICES  ****************************** -->
 

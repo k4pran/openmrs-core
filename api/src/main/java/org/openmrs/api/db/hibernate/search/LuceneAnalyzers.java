@@ -28,4 +28,6 @@ public class LuceneAnalyzers {
 	public static final String PHRASE_ANALYZER = "phraseAnalyzer";
 	
 	public static final String SOUNDEX_ANALYZER = "soundexAnalyzer";
+	
+	public static final String CONCEPT_NAME_ANALYZER = "conceptNameAnalyzer";
 }

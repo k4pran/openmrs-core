@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.openmrs.Concept;
 import org.openmrs.CareSetting;
 import org.openmrs.ConceptClass;
@@ -357,7 +358,7 @@ public class HibernateOrderDAO implements OrderDAO {
 			sql = " SELECT o.patient_id, o.care_setting, o.concept_id, d.drug_inventory_id "
 			        + " FROM orders o, drug_order d WHERE o.order_id = d.order_id AND o.order_id = :orderId";
 		}
-		Query query = sessionFactory.getCurrentSession().createSQLQuery(sql);
+		NativeQuery<Object[]> query = sessionFactory.getCurrentSession().createNativeQuery(sql, Object[].class);
 		query.setParameter("orderId", order.getOrderId());
 		
 		//prevent jpa from flushing before fetching the list

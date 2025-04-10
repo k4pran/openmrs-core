@@ -16,15 +16,12 @@ import java.util.Comparator;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
-import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.openmrs.api.db.hibernate.search.LuceneAnalyzers;
 import org.openmrs.util.OpenmrsUtil;
@@ -58,10 +55,10 @@ public class PatientIdentifier extends BaseChangeableOpenmrsData implements java
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
 	private Patient patient;
 
-	@FullTextField(name = "identifierPhrase", analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER), boost = @Boost(8f)),
-	@KeywordField(name = "identifierExact", sortable = Sortable.YES, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f)),
-	@FullTextField(name = "identifierStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f)),
-	@FullTextField(name = "identifierAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
+	@FullTextField(name = "identifierPhrase", analyzer = LuceneAnalyzers.PHRASE_ANALYZER)
+	@KeywordField(name = "identifierExact", sortable = Sortable.YES)
+	@FullTextField(name = "identifierStart", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "identifierAnywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
 	private String identifier;
 
 	@IndexedEmbedded(includeEmbeddedObjectId = true)

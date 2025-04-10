@@ -66,7 +66,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.ConceptDAO;
 import org.openmrs.api.db.DAOException;
-import org.openmrs.api.db.hibernate.search.LuceneQuery;
+import org.openmrs.api.db.hibernate.search.DSLQueryBuilder;
 import org.openmrs.collection.ListPart;
 import org.openmrs.util.ConceptMapTypeComparator;
 import org.openmrs.util.OpenmrsConstants;
@@ -399,7 +399,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	 */
 	@Override
 	public List<Drug> getDrugs(final String phrase) throws DAOException {
-		LuceneQuery<Drug> drugQuery = newDrugQuery(phrase, true, false, Context.getLocale(), false, null, false);
+		DSLQueryBuilder<Drug> drugQuery = newDrugQuery(phrase, true, false, Context.getLocale(), false, null, false);
 		
 		if (drugQuery == null) {
 			return Collections.emptyList();
@@ -586,7 +586,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 			locale = loc;
 		}
 		
-		LuceneQuery<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(name, !searchOnPhrase,
+		DSLQueryBuilder<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(name, !searchOnPhrase,
 				Collections.singletonList(locale),
 		    false, false, classes, null, datatypes, null, null);
 		
@@ -607,7 +607,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	
 	private String newConceptNameQuery(final String name, final boolean searchKeywords, final Set<Locale> locales,
 	        final boolean searchExactLocale) {
-		final String escapedName = LuceneQuery.escapeQuery(name).replace("AND", "and").replace("OR", "or").replace("NOT", "not");
+		final String escapedName = DSLQueryBuilder.escapeQuery(name).replace("AND", "and").replace("OR", "or").replace("NOT", "not");
 		final List<String> tokenizedName = tokenizeConceptName(escapedName, locales);
 		
 		final StringBuilder query = new StringBuilder();
@@ -1430,7 +1430,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	@Override
 	public Long getCountOfDrugs(String drugName, Concept concept, boolean searchKeywords, boolean searchDrugConceptNames,
 	        boolean includeRetired) throws DAOException {
-		LuceneQuery<Drug> drugsQuery = newDrugQuery(drugName, searchKeywords, searchDrugConceptNames, Context.getLocale(),
+		DSLQueryBuilder<Drug> drugsQuery = newDrugQuery(drugName, searchKeywords, searchDrugConceptNames, Context.getLocale(),
 		    false, concept, includeRetired);
 		
 		if (drugsQuery == null) {
@@ -1452,7 +1452,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	@Override
 	public List<Drug> getDrugs(String drugName, Concept concept, boolean searchKeywords, boolean searchDrugConceptNames,
 	        boolean includeRetired, Integer start, Integer length) throws DAOException {
-		LuceneQuery<Drug> drugsQuery = newDrugQuery(drugName, searchKeywords, searchDrugConceptNames, Context.getLocale(),
+		DSLQueryBuilder<Drug> drugsQuery = newDrugQuery(drugName, searchKeywords, searchDrugConceptNames, Context.getLocale(),
 		    false, concept, includeRetired);
 		
 		if (drugsQuery == null) {
@@ -1462,8 +1462,8 @@ public class HibernateConceptDAO implements ConceptDAO {
 		return drugsQuery.listPart(start, length).getList();
 	}
 	
-	private LuceneQuery<Drug> newDrugQuery(String drugName, boolean searchKeywords, boolean searchDrugConceptNames,
-	        Locale locale, boolean exactLocale, Concept concept, boolean includeRetired) {
+	private DSLQueryBuilder<Drug> newDrugQuery(String drugName, boolean searchKeywords, boolean searchDrugConceptNames,
+											   Locale locale, boolean exactLocale, Concept concept, boolean includeRetired) {
 		if (StringUtils.isBlank(drugName) && concept == null) {
 			return null;
 		}
@@ -1473,7 +1473,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 		
 		StringBuilder query = new StringBuilder();
 		if (!StringUtils.isBlank(drugName)) {
-			String escapedName = LuceneQuery.escapeQuery(drugName);
+			String escapedName = DSLQueryBuilder.escapeQuery(drugName);
 			List<String> tokenizedName = Arrays.asList(escapedName.trim().split("\\+"));
 			query.append("(");
 			query.append(newNameQuery(tokenizedName, escapedName, searchKeywords));
@@ -1483,7 +1483,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 		if (concept != null) {
 			query.append(" OR concept.conceptId:(").append(concept.getConceptId()).append(")^0.1");
 		} else if (searchDrugConceptNames) {
-			LuceneQuery<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(drugName, searchKeywords,
+			DSLQueryBuilder<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(drugName, searchKeywords,
 					Collections.singletonList(locale), exactLocale, includeRetired, null, null, null, null, null);
 			List<Object[]> conceptIds = conceptNameQuery.listProjection("concept.conceptId");
 			if (!conceptIds.isEmpty()) {
@@ -1495,7 +1495,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 			}
 		}
 		
-		LuceneQuery<Drug> drugsQuery = LuceneQuery
+		DSLQueryBuilder<Drug> drugsQuery = DSLQueryBuilder
 		        .newQuery(Drug.class, sessionFactory.getCurrentSession(), query.toString());
 		if (!includeRetired) {
 			drugsQuery.include("retired", false);
@@ -1513,7 +1513,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	        final List<ConceptDatatype> requireDatatypes, final List<ConceptDatatype> excludeDatatypes,
 	        final Concept answersToConcept, final Integer start, final Integer size) throws DAOException {
 		
-		LuceneQuery<ConceptName> query = newConceptNameLuceneQuery(phrase, true, locales, false, includeRetired,
+		DSLQueryBuilder<ConceptName> query = newConceptNameLuceneQuery(phrase, true, locales, false, includeRetired,
 		    requireClasses, excludeClasses, requireDatatypes, excludeDatatypes, answersToConcept);
 		
 		ListPart<ConceptName> names = query.listPart(start, size);
@@ -1532,17 +1532,17 @@ public class HibernateConceptDAO implements ConceptDAO {
 	        List<ConceptClass> requireClasses, List<ConceptClass> excludeClasses, List<ConceptDatatype> requireDatatypes,
 	        List<ConceptDatatype> excludeDatatypes, Concept answersToConcept) throws DAOException {
 		
-		LuceneQuery<ConceptName> query = newConceptNameLuceneQuery(phrase, true, locales, false, includeRetired,
+		DSLQueryBuilder<ConceptName> query = newConceptNameLuceneQuery(phrase, true, locales, false, includeRetired,
 		    requireClasses, excludeClasses, requireDatatypes, excludeDatatypes, answersToConcept);
 		
 		Long size = query.resultSize();
 		return size.intValue();
 	}
 	
-	private LuceneQuery<ConceptName> newConceptNameLuceneQuery(final String phrase, boolean searchKeywords,
-	        List<Locale> locales, boolean searchExactLocale, boolean includeRetired, List<ConceptClass> requireClasses,
-	        List<ConceptClass> excludeClasses, List<ConceptDatatype> requireDatatypes,
-	        List<ConceptDatatype> excludeDatatypes, Concept answersToConcept) {
+	private DSLQueryBuilder<ConceptName> newConceptNameLuceneQuery(final String phrase, boolean searchKeywords,
+																   List<Locale> locales, boolean searchExactLocale, boolean includeRetired, List<ConceptClass> requireClasses,
+																   List<ConceptClass> excludeClasses, List<ConceptDatatype> requireDatatypes,
+																   List<ConceptDatatype> excludeDatatypes, Concept answersToConcept) {
 		final StringBuilder query = new StringBuilder();
 		
 		if (!StringUtils.isBlank(phrase)) {
@@ -1557,7 +1557,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 			query.append(newConceptNameQuery(phrase, searchKeywords, searchLocales, searchExactLocale));
 		}
 		
-		LuceneQuery<ConceptName> luceneQuery = LuceneQuery.newQuery(ConceptName.class, sessionFactory.getCurrentSession(),
+		DSLQueryBuilder<ConceptName> dslQueryBuilder = DSLQueryBuilder.newQuery(ConceptName.class, sessionFactory.getCurrentSession(),
 		    query.toString()).include("concept.conceptClass.conceptClassId", transformToIds(requireClasses)).exclude(
 		    "concept.conceptClass.conceptClassId", transformToIds(excludeClasses)).include(
 		    "concept.datatype.conceptDatatypeId", transformToIds(requireDatatypes)).exclude(
@@ -1571,17 +1571,17 @@ public class HibernateConceptDAO implements ConceptDAO {
 				for (ConceptAnswer conceptAnswer : answersToConcept.getAnswers(false)) {
 					ids.add(conceptAnswer.getAnswerConcept().getId());
 				}
-				luceneQuery.include("concept.conceptId", ids.toArray(new Object[0]));
+				dslQueryBuilder.include("concept.conceptId", ids.toArray(new Object[0]));
 			}
 		}
 		
 		if (!includeRetired) {
-			luceneQuery.include("concept.retired", false);
+			dslQueryBuilder.include("concept.retired", false);
 		}
+
+		dslQueryBuilder.skipSame("concept.conceptId");
 		
-		luceneQuery.skipSame("concept.conceptId");
-		
-		return luceneQuery;
+		return dslQueryBuilder;
 	}
 	
 	private String[] transformToIds(final List<? extends OpenmrsObject> items) {
@@ -1964,7 +1964,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 		
 		boolean searchExactLocale = (exactLocale == null) ? false : exactLocale;
 		
-		LuceneQuery<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(name, true, locales, searchExactLocale, false,
+		DSLQueryBuilder<ConceptName> conceptNameQuery = newConceptNameLuceneQuery(name, true, locales, searchExactLocale, false,
 		    null, null, null, null, null);
 		
 		List<ConceptName> names = conceptNameQuery.list();
@@ -2117,7 +2117,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 	 */
 	@Override
 	public List<Drug> getDrugs(String searchPhrase, Locale locale, boolean exactLocale, boolean includeRetired) {
-		LuceneQuery<Drug> drugQuery = newDrugQuery(searchPhrase, true, true, locale, exactLocale, null, includeRetired);
+		DSLQueryBuilder<Drug> drugQuery = newDrugQuery(searchPhrase, true, true, locale, exactLocale, null, includeRetired);
 		
 		return drugQuery.list();
 	}

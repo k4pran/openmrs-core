@@ -67,8 +67,8 @@ public class DelegatingFullTextSession extends SessionDelegatorBaseImpl implemen
 		//so that failure should just halt the entire creation operation, this is possible because 
 		//the default ApplicationEventMulticaster in spring fires events serially in the same thread
 		//but has the downside of where a rogue listener can block the entire application.
-		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, clazz); // todo 
-		eventPublisher.publishEvent(new FullTextQueryCreatedEvent(queryAndClass));
+//		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, clazz); // todo 
+//		eventPublisher.publishEvent(new FullTextQueryCreatedEvent(queryAndClass));
 		
 		return query;
 	}
@@ -91,8 +91,8 @@ public class DelegatingFullTextSession extends SessionDelegatorBaseImpl implemen
 		//so that failure should just halt the entire creation operation, this is possible because 
 		//the default ApplicationEventMulticaster in spring fires events serially in the same thread
 		//but has the downside of where a rogue listener can block the entire application.
-		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, entityClass);
-		eventPublisher.publishEvent(new FullTextQueryCreatedEvent(queryAndClass));
+//		FullTextQueryAndEntityClass queryAndClass = new FullTextQueryAndEntityClass(query, entityClass);
+//		eventPublisher.publishEvent(new FullTextQueryCreatedEvent(queryAndClass)); TODO
 
 		return query;
 	}

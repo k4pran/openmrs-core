@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.FlushMode;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.openmrs.Cohort;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
@@ -83,11 +83,11 @@ public class HibernateEncounterDAO implements EncounterDAO {
 	}
 	
 	/**
-	 * @see org.openmrs.api.EncounterService#deleteEncounter(org.openmrs.Encounter)
+	 * @see org.openmrs.api.db.EncounterDAO#deleteEncounter(org.openmrs.Encounter)
 	 */
 	@Override
 	public void deleteEncounter(Encounter encounter) throws DAOException {
-		sessionFactory.getCurrentSession().delete(encounter);
+		sessionFactory.getCurrentSession().remove(encounter);
 	}
 	
 	/**
@@ -267,10 +267,11 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		FlushMode flushMode = session.getHibernateFlushMode();
 		session.setHibernateFlushMode(FlushMode.MANUAL);
 		try {
-			SQLQuery sql = session
-			        .createSQLQuery("select encounter_datetime from encounter where encounter_id = :encounterId");
-			sql.setInteger("encounterId", encounter.getEncounterId());
-			return (Date) sql.uniqueResult();
+			NativeQuery<Date> sql = session
+			        .createNativeQuery("select encounter_datetime from encounter where encounter_id = :encounterId",
+						Date.class);
+			sql.setParameter("encounterId", encounter.getEncounterId());
+			return sql.uniqueResult();
 		}
 		finally {
 			session.setHibernateFlushMode(flushMode);
@@ -334,9 +335,10 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		FlushMode flushMode = session.getHibernateFlushMode();
 		session.setHibernateFlushMode(FlushMode.MANUAL);
 		try {
-			SQLQuery sql = session.createSQLQuery("select location_id from encounter where encounter_id = :encounterId");
-			sql.setInteger("encounterId", encounter.getEncounterId());
-			return Context.getLocationService().getLocation((Integer) sql.uniqueResult());
+			NativeQuery<Integer> sql = session.createNativeQuery("select location_id from encounter where encounter_id = :encounterId",
+				Integer.class);
+			sql.setParameter("encounterId", encounter.getEncounterId());
+			return Context.getLocationService().getLocation(sql.uniqueResult());
 		}
 		finally {
 			session.setHibernateFlushMode(flushMode);
@@ -362,8 +364,8 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		);
 
 		TypedQuery<Encounter> query = session.createQuery(cq);
-		query.setHint("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
-		query.setHint("javax.persistence.cache.storeMode", CacheStoreMode.BYPASS);
+		query.setHint("jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
+		query.setHint("jakarta.persistence.cache.storeMode", CacheStoreMode.BYPASS);
 
 		Map<Integer, List<Encounter>> encountersBypatient = new HashMap<>();
 		List<Encounter> allEncounters = query.getResultList();
@@ -598,7 +600,7 @@ public class HibernateEncounterDAO implements EncounterDAO {
 	 * Convenience method since this DAO fetches several different domain objects by uuid
 	 *
 	 * @param uuid uuid to fetch
-	 * @param table a simple classname (e.g. "Encounter")
+	 * @param clazz the table entity (e.g. "Encounter.class")
 	 * @return
 	 */
 	private <T> T getClassByUuid(Class<T> clazz, String uuid) {

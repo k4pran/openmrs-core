@@ -17,7 +17,7 @@ import org.hibernate.SessionFactory;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
-import org.openmrs.api.db.hibernate.search.LuceneQuery;
+import org.openmrs.api.db.hibernate.search.DSLQueryBuilder;
 import org.openmrs.util.OpenmrsConstants;
 
 /**
@@ -46,35 +46,35 @@ public class PersonLuceneQuery {
 		this.sessionFactory = sessionFactory;
 	}
 
-	public LuceneQuery<PersonName> getPersonNameQuery(String query, boolean includeVoided) {
+	public DSLQueryBuilder<PersonName> getPersonNameQuery(String query, boolean includeVoided) {
 		return getPersonNameQuery(query, false, includeVoided, false, null);
 	}
 
-	public LuceneQuery<PersonName> getPatientNameQuery(String query, boolean includeVoided) {
+	public DSLQueryBuilder<PersonName> getPatientNameQuery(String query, boolean includeVoided) {
 		return getPersonNameQuery(query, false, includeVoided, true, null);
 	}
 
-	public LuceneQuery<PersonName> getPersonNameQuery(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonName> getPersonNameQuery(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonNameQuery(query, false, includeVoided, false, skipSame);
 	}
 
-	public LuceneQuery<PersonName> getPatientNameQuery(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonName> getPatientNameQuery(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonNameQuery(query, false, includeVoided, true, skipSame);
 	}
 
-	public LuceneQuery<PersonName> getPersonNameQueryWithOrParser(String query, boolean includeVoided) {
+	public DSLQueryBuilder<PersonName> getPersonNameQueryWithOrParser(String query, boolean includeVoided) {
 		return getPersonNameQuery(query, true, includeVoided, false, null);
 	}
 
-	public LuceneQuery<PersonName> getPatientNameQueryWithOrParser(String query, boolean includeVoided) {
+	public DSLQueryBuilder<PersonName> getPatientNameQueryWithOrParser(String query, boolean includeVoided) {
 		return getPersonNameQuery(query, true, includeVoided, true, null);
 	}
 
-	public LuceneQuery<PersonName> getPersonNameQueryWithOrParser(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonName> getPersonNameQueryWithOrParser(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonNameQuery(query, true, includeVoided, false, skipSame);
 	}
 
-	public LuceneQuery<PersonName> getPatientNameQueryWithOrParser(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonName> getPatientNameQueryWithOrParser(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonNameQuery(query, true, includeVoided, true, skipSame);
 	}
 	
@@ -89,11 +89,11 @@ public class PersonLuceneQuery {
 	 * @param gender the gender of the person to search  
 	 * @return the LuceneQuery that returns Persons with a soundex representation of the firstName and other defined search criteria
 	 */
-	public LuceneQuery<PersonName> getSoundexPersonNameSearchOnThreeNames(String n1, String n2, String n3,  Integer birthyear, boolean includeVoided, String gender) {
+	public DSLQueryBuilder<PersonName> getSoundexPersonNameSearchOnThreeNames(String n1, String n2, String n3, Integer birthyear, boolean includeVoided, String gender) {
 		
-		String threeNameQuery =  THREE_NAME_QUERY.replace("n1", LuceneQuery.escapeQuery(n1))
-			.replace("n2", LuceneQuery.escapeQuery(n2))
-			.replace("n3", LuceneQuery.escapeQuery(n3));
+		String threeNameQuery =  THREE_NAME_QUERY.replace("n1", DSLQueryBuilder.escapeQuery(n1))
+			.replace("n2", DSLQueryBuilder.escapeQuery(n2))
+			.replace("n3", DSLQueryBuilder.escapeQuery(n3));
 		
 		return getSoundexPersonNameQuery(threeNameQuery, birthyear, includeVoided, gender);
 	}
@@ -108,10 +108,10 @@ public class PersonLuceneQuery {
 	 * @param gender the gender of the person to search  
 	 * @return the LuceneQuery that returns Persons with a soundex representation of the defined names and the other defined search criteria
 	 */
-	public LuceneQuery<PersonName> getSoundexPersonNameSearchOnTwoNames(String searchName1, String searchName2,  Integer birthyear, boolean includeVoided, String gender) {
+	public DSLQueryBuilder<PersonName> getSoundexPersonNameSearchOnTwoNames(String searchName1, String searchName2, Integer birthyear, boolean includeVoided, String gender) {
 		
-		String threeNameQuery =  TWO_NAME_QUERY.replace("n1", LuceneQuery.escapeQuery(searchName1))
-			.replace("n2", LuceneQuery.escapeQuery(searchName2));
+		String threeNameQuery =  TWO_NAME_QUERY.replace("n1", DSLQueryBuilder.escapeQuery(searchName1))
+			.replace("n2", DSLQueryBuilder.escapeQuery(searchName2));
 		
 		return getSoundexPersonNameQuery(threeNameQuery, birthyear, includeVoided, gender);
 	}
@@ -125,7 +125,7 @@ public class PersonLuceneQuery {
 	 * @param gender the gender of the person to search  
 	 * @return the LuceneQuery that returns Persons with a soundex representation of the defined names and the other defined search criteria
 	 */
-	public LuceneQuery<PersonName> getSoundexPersonNameSearchOnNNames(String[] searchNames, Integer birthyear, boolean includeVoided, String gender) {
+	public DSLQueryBuilder<PersonName> getSoundexPersonNameSearchOnNNames(String[] searchNames, Integer birthyear, boolean includeVoided, String gender) {
 		List<String> fields = new ArrayList<>();
 		fields.addAll(Arrays.asList("familyNameSoundex", "familyName2Soundex", "middleNameSoundex", "givenNameSoundex"));
 		List<String> queryPart = new ArrayList<>();
@@ -147,7 +147,7 @@ public class PersonLuceneQuery {
 	 * @param gender the gender of the person to search
 	 * @return the LuceneQuery that returns Persons with a soundex representation of the givenName, familyNames and middleName
 	 */
-	public LuceneQuery<PersonName> getSoundexPersonNameQuery(String query, Integer birthyear, boolean includeVoided, String gender) {
+	public DSLQueryBuilder<PersonName> getSoundexPersonNameQuery(String query, Integer birthyear, boolean includeVoided, String gender) {
 		List<String> fields = new ArrayList<>();
 		fields.addAll(Arrays.asList("familyNameSoundex", "familyName2Soundex", "middleNameSoundex", "givenNameSoundex"));
 		
@@ -164,7 +164,7 @@ public class PersonLuceneQuery {
 	 * @param gender of the person to match
 	 * @return the LuceneQuery that is build based on the parameters
 	 */
-	private LuceneQuery<PersonName> buildSoundexLuceneQuery(String query, List<String> fields, Integer birthyear, boolean includeVoided, String gender) {
+	private DSLQueryBuilder<PersonName> buildSoundexLuceneQuery(String query, List<String> fields, Integer birthyear, boolean includeVoided, String gender) {
 		String completeQuery = query;
 		if(birthyear != 0) {
 			// birthdate inside the birthyear range or is null
@@ -173,23 +173,23 @@ public class PersonLuceneQuery {
 			completeQuery+= dateQuery;
 		}
 		
-		LuceneQuery<PersonName> luceneQuery = LuceneQuery
-			.newQuery(PersonName.class, sessionFactory.getCurrentSession(), completeQuery, fields, LuceneQuery.MatchType.SOUNDEX).useOrQueryParser();
+		DSLQueryBuilder<PersonName> dslQueryBuilder = DSLQueryBuilder
+			.newQuery(PersonName.class, sessionFactory.getCurrentSession(), completeQuery, fields, DSLQueryBuilder.MatchType.SOUNDEX).useOrQueryParser();
 		
 		if (!includeVoided) {
-			luceneQuery.include("voided", false);
-			luceneQuery.include("person.voided", false);
+			dslQueryBuilder.include("voided", false);
+			dslQueryBuilder.include("person.voided", false);
 		}
 		
 		if(gender != null) {
 			String[] searchedGenders = new String[] {gender.toLowerCase()};
-			luceneQuery.include("person.gender", searchedGenders);
+			dslQueryBuilder.include("person.gender", searchedGenders);
 		}
-		return luceneQuery;
+		return dslQueryBuilder;
 	}
 		
 		
-	private LuceneQuery<PersonName> getPersonNameQuery(String query, boolean orQueryParser, boolean includeVoided, boolean patientsOnly, LuceneQuery<?> skipSame) {
+	private DSLQueryBuilder<PersonName> getPersonNameQuery(String query, boolean orQueryParser, boolean includeVoided, boolean patientsOnly, DSLQueryBuilder<?> skipSame) {
 		List<String> fields = new ArrayList<>();
 		fields.addAll(Arrays.asList("givenNameExact", "middleNameExact", "familyNameExact", "familyName2Exact"));
 		fields.addAll(Arrays.asList("givenNameStart", "middleNameStart", "familyNameStart", "familyName2Start"));
@@ -198,48 +198,48 @@ public class PersonLuceneQuery {
 		if (OpenmrsConstants.GLOBAL_PROPERTY_PATIENT_SEARCH_MATCH_ANYWHERE.equals(matchMode)) {
 			fields.addAll(Arrays.asList("givenNameAnywhere", "middleNameAnywhere", "familyNameAnywhere", "familyName2Anywhere"));
 		}
-		LuceneQuery<PersonName> luceneQuery = LuceneQuery
+		DSLQueryBuilder<PersonName> dslQueryBuilder = DSLQueryBuilder
 				.newQuery(PersonName.class, sessionFactory.getCurrentSession(), query, fields);
 
 		if (orQueryParser) {
-			luceneQuery.useOrQueryParser();
+			dslQueryBuilder.useOrQueryParser();
 		}
 
 		if (!includeVoided) {
-			luceneQuery.include("voided", false);
-			luceneQuery.include("person.voided", false);
+			dslQueryBuilder.include("voided", false);
+			dslQueryBuilder.include("person.voided", false);
 		}
 
 		if (patientsOnly) {
-			luceneQuery.include("person.isPatient", true);
+			dslQueryBuilder.include("person.isPatient", true);
 		}
 
 		if (skipSame != null) {
-			luceneQuery.skipSame("person.personId", skipSame);
+			dslQueryBuilder.skipSame("person.personId", skipSame);
 		} else {
-			luceneQuery.skipSame("person.personId");
+			dslQueryBuilder.skipSame("person.personId");
 		}
 
-		return luceneQuery;
+		return dslQueryBuilder;
 	}
 
-	public LuceneQuery<PersonAttribute> getPersonAttributeQuery(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonAttribute> getPersonAttributeQuery(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonAttributeQuery(query, false, includeVoided, false, skipSame);
 	}
 
-	public LuceneQuery<PersonAttribute> getPatientAttributeQuery(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonAttribute> getPatientAttributeQuery(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonAttributeQuery(query, false, includeVoided, true, skipSame);
 	}
 
-	public LuceneQuery<PersonAttribute> getPersonAttributeQueryWithOrParser(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonAttribute> getPersonAttributeQueryWithOrParser(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonAttributeQuery(query, true, includeVoided, false, skipSame);
 	}
 
-	public LuceneQuery<PersonAttribute> getPatientAttributeQueryWithOrParser(String query, boolean includeVoided, LuceneQuery<?> skipSame) {
+	public DSLQueryBuilder<PersonAttribute> getPatientAttributeQueryWithOrParser(String query, boolean includeVoided, DSLQueryBuilder<?> skipSame) {
 		return getPersonAttributeQuery(query, true, includeVoided, true, skipSame);
 	}
 
-	private LuceneQuery<PersonAttribute> getPersonAttributeQuery(String query, boolean orQueryParser, boolean includeVoided, boolean patientsOnly, LuceneQuery<?> skipSame) {
+	private DSLQueryBuilder<PersonAttribute> getPersonAttributeQuery(String query, boolean orQueryParser, boolean includeVoided, boolean patientsOnly, DSLQueryBuilder<?> skipSame) {
 		List<String> fields = new ArrayList<>();
 		fields.add("valuePhrase"); //will position whole phrase match higher
 		fields.add("valueExact");
@@ -249,30 +249,30 @@ public class PersonLuceneQuery {
 			fields.add("valueAnywhere");
 		}
 
-		LuceneQuery<PersonAttribute> luceneQuery = LuceneQuery
+		DSLQueryBuilder<PersonAttribute> dslQueryBuilder = DSLQueryBuilder
 				.newQuery(PersonAttribute.class, sessionFactory.getCurrentSession(), query, fields);
 
 		if (orQueryParser) {
-			luceneQuery.useOrQueryParser();
+			dslQueryBuilder.useOrQueryParser();
 		}
 
 		if (!includeVoided){
-			luceneQuery.include("voided", false);
-			luceneQuery.include("person.voided", false);
+			dslQueryBuilder.include("voided", false);
+			dslQueryBuilder.include("person.voided", false);
 		}
 
-		luceneQuery.include("attributeType.searchable", true);
+		dslQueryBuilder.include("attributeType.searchable", true);
 
 		if (patientsOnly) {
-			luceneQuery.include("person.isPatient", true);
+			dslQueryBuilder.include("person.isPatient", true);
 		}
 
 		if (skipSame != null) {
-			luceneQuery.skipSame("person.personId", skipSame);
+			dslQueryBuilder.skipSame("person.personId", skipSame);
 		} else {
-			luceneQuery.skipSame("person.personId");
+			dslQueryBuilder.skipSame("person.personId");
 		}
 
-		return luceneQuery;
+		return dslQueryBuilder;
 	}
 }

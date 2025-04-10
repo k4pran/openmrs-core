@@ -20,8 +20,6 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
@@ -57,31 +55,31 @@ public class PersonName extends BaseChangeableOpenmrsData implements java.io.Ser
 
 	private Boolean preferred = false;
 
-	@KeywordField(name = "givenNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(8f))
-	@FullTextField(name = "givenNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(4f))
-	@FullTextField(name = "givenNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER), boost = @Boost(2f))
-	@FullTextField(name = "givenNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+	@KeywordField(name = "givenNameExact")
+	@FullTextField(name = "givenNameStart", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "givenNameAnywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
+	@FullTextField(name = "givenNameSoundex", analyzer =  LuceneAnalyzers.SOUNDEX_ANALYZER)
 	private String givenName;
 	private String prefix;
 
-	@KeywordField(name = "middleNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f))
-	@FullTextField(name = "middleNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f))
-	@FullTextField(name = "middleNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
-	@FullTextField(name = "middleNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+	@KeywordField(name = "middleNameExact")
+	@FullTextField(name = "middleNameStart", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "middleNameAnywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
+	@FullTextField(name = "middleNameSoundex", analyzer =  LuceneAnalyzers.SOUNDEX_ANALYZER)
 	private String middleName;
 	
 	private String familyNamePrefix;
 
-	@KeywordField(name = "familyNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(8f)),
-	@FullTextField(name = "familyNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(4f)),
-	@FullTextField(name = "familyNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER), boost = @Boost(2f)),
-	@FullTextField(name = "familyNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+	@KeywordField(name = "familyNameExact")
+	@FullTextField(name = "familyNameStart", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "familyNameAnywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
+	@FullTextField(name = "familyNameSoundex", analyzer =  LuceneAnalyzers.SOUNDEX_ANALYZER)
 	private String familyName;
 
-	@KeywordField(name = "familyName2Exact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f))
-	@FullTextField(name = "familyName2Start", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f))
-	@FullTextField(name = "familyName2Anywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
-	@FullTextField(name = "familyName2Soundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+	@KeywordField(name = "familyName2Exact")
+	@FullTextField(name = "familyName2Start", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "familyName2Anywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
+	@FullTextField(name = "familyName2Soundex", analyzer = LuceneAnalyzers.SOUNDEX_ANALYZER)
 	private String familyName2;
 	
 	private String familyNameSuffix;

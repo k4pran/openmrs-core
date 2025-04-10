@@ -101,14 +101,14 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role"))
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.EVICT })
+	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.DETACH })
 	private Set<Role> roles;
 
 	@ElementCollection
 	@CollectionTable(name = "user_property", joinColumns = @JoinColumn(name = "user_id", nullable = false))
 	@MapKeyColumn(name = "property", length = 255)
 	@Column(name = "property_value", length = Integer.MAX_VALUE)
-	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.EVICT })
+	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.DETACH })
 	@NotAudited
 	private Map<String, String> userProperties;
 

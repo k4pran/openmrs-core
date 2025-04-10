@@ -904,8 +904,8 @@ public abstract class BaseContextSensitiveTest extends AbstractJUnit4SpringConte
 	@Before
 	public void clearHibernateCache() {
 		SessionFactory sf = (SessionFactory) applicationContext.getBean("sessionFactory");
-		sf.getCache().evictCollectionRegions();
-		sf.getCache().evictEntityRegions();
+		sf.getCache().evictCollectionData();
+		sf.getCache().evictEntityData();
 	}
 	
 	/**

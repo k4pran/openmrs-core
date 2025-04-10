@@ -1,76 +1,45 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can
- * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
- * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
- *
- * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
- * graphic logo is a trademark of OpenMRS Inc.
- */
 package org.openmrs.api.db.hibernate.search;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.hibernate.search.annotations.Factory;
-import org.hibernate.search.annotations.Key;
-import org.hibernate.search.filter.FilterKey;
-import org.hibernate.search.filter.StandardFilterKey;
-import org.hibernate.search.filter.impl.CachingWrapperQuery;
+import org.hibernate.search.engine.search.predicate.SearchPredicate;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 
-public class TermsFilterFactory {
-	
-	private Set<Set<Term>> includeTerms = new HashSet<>();
-	
-	private Set<Term> excludeTerms = new HashSet<>();
-	
-	public void setIncludeTerms(Set<Set<Term>> terms) {
-		this.includeTerms = new HashSet<>(terms);
-	}
-	
-	public void setExcludeTerms(Set<Term> terms) {
-		this.excludeTerms = new HashSet<>(terms);
+public final class TermsFilterFactory {
+
+	private TermsFilterFactory() {
+		// Utility class
 	}
 
-	@Key
-	public FilterKey getKey() {
-		StandardFilterKey key = new StandardFilterKey();
-		key.addParameter(includeTerms);
-		key.addParameter(excludeTerms);
-		return key;
-	}
-	
-	@Factory
-	public Query getQuery() {
-		BooleanQuery query = new BooleanQuery();
+	public static SearchPredicate create(SearchPredicateFactory f,
+										 Set<Set<FieldAndValue>> includeTerms,
+										 Set<FieldAndValue> excludeTerms) {
 
-		if (includeTerms.isEmpty()) {
-			query.add(new MatchAllDocsQuery(), Occur.MUST);
-		} else {
-			for (Set<Term> terms : includeTerms) {
-
-				if (terms.size() == 1) {
-					query.add(new TermQuery(terms.iterator().next()), Occur.MUST);
-				} else if (terms.size() > 1) {
-					BooleanQuery subquery = new BooleanQuery();
-					for (Term term : terms) {
-						subquery.add(new TermQuery(term), Occur.SHOULD);
+		return f.bool(b -> {
+			// Handle inclusions
+			if (includeTerms == null || includeTerms.isEmpty()) {
+				b.must(f.matchAll());
+			} else {
+				for (Set<FieldAndValue> termGroup : includeTerms) {
+					if (termGroup.size() == 1) {
+						FieldAndValue term = termGroup.iterator().next();
+						b.must(f.match().field(term.getField()).matching(term.getValue()));
+					} else {
+						b.must(f.bool(sub -> {
+							for (FieldAndValue term : termGroup) {
+								sub.should(f.match().field(term.getField()).matching(term.getValue()));
+							}
+						}));
 					}
-					query.add(subquery, Occur.MUST);
 				}
 			}
-		}
 
-		for (Term term : excludeTerms) {
-			query.add(new TermQuery(term), Occur.MUST_NOT);
-		}
-		
-		return new CachingWrapperQuery(query);
+			// Handle exclusions
+			if (excludeTerms != null) {
+				for (FieldAndValue term : excludeTerms) {
+					b.mustNot(f.match().field(term.getField()).matching(term.getValue()));
+				}
+			}
+		}).toPredicate();
 	}
 }

@@ -9,6 +9,8 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import static org.hibernate.id.IdentifierGenerator.ENTITY_NAME;
+
 import java.io.Serializable;
 import java.util.Properties;
 
@@ -37,18 +39,18 @@ public class NativeIfNotAssignedIdentityGenerator extends IdentityGenerator impl
 	
 	private String entityName;
 	
-	@Override
-	public Serializable generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
-		Serializable id;
-		EntityPersister persister = session.getEntityPersister(entityName, entity);
-		// Determine if an ID has been assigned.
-		id = persister.getIdentifier(entity, session);
-		if (id == null) {
-			id = super.generate(session, entity);
-		}
-		return id;
-	}
-
+//	@Override TODO
+//	public Serializable generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
+//		Object id;
+//		EntityPersister persister = session.getEntityPersister(entityName, entity);
+//		// Determine if an ID has been assigned.
+//		id = persister.getIdentifier(entity, session);
+//		if (id == null) {
+//			id = super.generate(session, entity);
+//		}
+//		return id;
+//	}
+	
 	@Override
 	public void configure(Type type, Properties params, ServiceRegistry serviceRegistry) throws MappingException {
 		this.entityName = params.getProperty(ENTITY_NAME);

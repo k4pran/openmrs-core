@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
@@ -30,7 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.HSQLDialect;
-import org.hibernate.dialect.PostgreSQL82Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.proxy.HibernateProxy;
 import org.openmrs.Location;
@@ -84,8 +87,9 @@ public class HibernateUtil {
 		
 		if (isPostgreSQLDialect == null) {
 			// check and cache the dialect
-			isPostgreSQLDialect = PostgreSQL82Dialect.class.getName()
-			        .equals(getDialect(sessionFactory).getClass().getName());
+			isPostgreSQLDialect = PostgreSQLDialect.class.isAssignableFrom(
+				getDialect(sessionFactory).getClass()
+			);
 		}
 		
 		return isPostgreSQLDialect;
@@ -105,7 +109,7 @@ public class HibernateUtil {
 		}
 		
 		SessionFactoryImplementor implementor = (SessionFactoryImplementor) sessionFactory;
-		dialect = implementor.getDialect();
+		dialect = implementor.getJdbcServices().getDialect();
 		
 		log.debug("Getting dialect for session: {}", dialect);
 		
@@ -237,5 +241,14 @@ public class HibernateUtil {
 		return session.createQuery(criteriaQuery)
 			.setFetchSize(fetchSize)
 			.scroll(ScrollMode.FORWARD_ONLY);
+	}
+	
+	public static boolean hasUniqueResult(Query query) {
+		try {
+			return query.getSingleResult() != null;
+			
+		} catch (NoResultException | NonUniqueResultException e) {
+			return false;
+		}
 	}
 }

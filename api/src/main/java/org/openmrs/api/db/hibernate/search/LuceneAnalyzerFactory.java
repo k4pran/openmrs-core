@@ -9,17 +9,19 @@
  */
 package org.openmrs.api.db.hibernate.search;
 
+import static org.openmrs.api.db.hibernate.search.LuceneAnalyzers.CONCEPT_NAME_ANALYZER;
+
+import org.apache.lucene.analysis.classic.ClassicFilterFactory;
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
 import org.apache.lucene.analysis.ngram.EdgeNGramFilterFactory;
 import org.apache.lucene.analysis.ngram.NGramFilterFactory;
-import org.apache.lucene.analysis.standard.ClassicFilterFactory;
 import org.apache.lucene.analysis.phonetic.PhoneticFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
-import org.hibernate.search.annotations.Factory;
-import org.hibernate.search.cfg.SearchMapping;
+import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurationContext;
+import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer;
 
 /**
  * Provides a Lucene SearchMapping for any objects in openmrs-core.
@@ -33,40 +35,51 @@ import org.hibernate.search.cfg.SearchMapping;
  *
  * @since 2.4.0
  */
-public class LuceneAnalyzerFactory {
-	@Factory
-	public SearchMapping getSearchMapping() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.analyzerDef(LuceneAnalyzers.PHRASE_ANALYZER, KeywordTokenizerFactory.class)
-			.filter(ClassicFilterFactory.class)
-			.filter(LowerCaseFilterFactory.class)
-			.filter(ASCIIFoldingFilterFactory.class);
-		mapping.analyzerDef(LuceneAnalyzers.EXACT_ANALYZER, WhitespaceTokenizerFactory.class)
-			.filter(ClassicFilterFactory.class)
-			.filter(LowerCaseFilterFactory.class)
-			.filter(ASCIIFoldingFilterFactory.class);
-		mapping.analyzerDef(LuceneAnalyzers.START_ANALYZER, WhitespaceTokenizerFactory.class)
-			.filter(ClassicFilterFactory.class)
-			.filter(LowerCaseFilterFactory.class)
-			.filter(ASCIIFoldingFilterFactory.class)
-			.filter(EdgeNGramFilterFactory.class)
+public class LuceneAnalyzerFactory implements LuceneAnalysisConfigurer {
+
+	@Override
+	public void configure(LuceneAnalysisConfigurationContext context) {
+		context.analyzer(LuceneAnalyzers.PHRASE_ANALYZER).custom()
+			.tokenizer(KeywordTokenizerFactory.class)
+			.tokenFilter(ClassicFilterFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(ASCIIFoldingFilterFactory.class);
+
+		context.analyzer(LuceneAnalyzers.EXACT_ANALYZER).custom()
+			.tokenizer(WhitespaceTokenizerFactory.class)
+			.tokenFilter(ClassicFilterFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(ASCIIFoldingFilterFactory.class);
+
+		context.analyzer(LuceneAnalyzers.START_ANALYZER).custom()
+			.tokenizer(WhitespaceTokenizerFactory.class)
+			.tokenFilter(ClassicFilterFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(ASCIIFoldingFilterFactory.class)
+			.tokenFilter(EdgeNGramFilterFactory.class)
 			.param("minGramSize", "2")
 			.param("maxGramSize", "20");
-		mapping.analyzerDef(LuceneAnalyzers.ANYWHERE_ANALYZER, WhitespaceTokenizerFactory.class)
-			.filter(ClassicFilterFactory.class)
-			.filter(LowerCaseFilterFactory.class)
-			.filter(ASCIIFoldingFilterFactory.class)
-			.filter(NGramFilterFactory.class)
+
+		context.analyzer(LuceneAnalyzers.ANYWHERE_ANALYZER).custom()
+			.tokenizer(WhitespaceTokenizerFactory.class)
+			.tokenFilter(ClassicFilterFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(ASCIIFoldingFilterFactory.class)
+			.tokenFilter(NGramFilterFactory.class)
 			.param("minGramSize", "2")
 			.param("maxGramSize", "20");
-		mapping.analyzerDef(LuceneAnalyzers.SOUNDEX_ANALYZER, StandardTokenizerFactory.class)
-			.filter(ClassicFilterFactory.class) 
-			.filter(LowerCaseFilterFactory.class)
-			.filter(PhoneticFilterFactory.class)
+
+		context.analyzer(LuceneAnalyzers.SOUNDEX_ANALYZER).custom()
+			.tokenizer(StandardTokenizerFactory.class)
+			.tokenFilter(ClassicFilterFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(PhoneticFilterFactory.class)
 			.param("encoder", "Soundex");
-		
-		return mapping;
+
+		context.analyzer(CONCEPT_NAME_ANALYZER).custom()
+			.tokenizer(StandardTokenizerFactory.class)
+			.tokenFilter(LowerCaseFilterFactory.class)
+			.tokenFilter(ASCIIFoldingFilterFactory.class);
 	}
 }
 

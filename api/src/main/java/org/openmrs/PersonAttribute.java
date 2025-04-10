@@ -17,8 +17,6 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
@@ -60,10 +58,10 @@ public class PersonAttribute extends BaseChangeableOpenmrsData implements java.i
 	@IndexedEmbedded
 	private PersonAttributeType attributeType;
 
-	@FullTextField(name = "valuePhrase", analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER), boost = @Boost(8f))
-	@KeywordField(name = "valueExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f))
-	@FullTextField(name = "valueStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f))
-	@FullTextField(name = "valueAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
+	@FullTextField(name = "valuePhrase", analyzer = LuceneAnalyzers.PHRASE_ANALYZER)
+	@KeywordField(name = "valueExact")
+	@FullTextField(name = "valueStart", analyzer = LuceneAnalyzers.START_ANALYZER)
+	@FullTextField(name = "valueAnywhere", analyzer = LuceneAnalyzers.ANYWHERE_ANALYZER)
 	private String value;
 	
 	/** default constructor */

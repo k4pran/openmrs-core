@@ -9,22 +9,22 @@
  */
 package org.openmrs.api.db;
 
-import org.hibernate.search.FullTextQuery;
+import org.openmrs.api.db.hibernate.search.SearchQuery;
 
 /**
- * Wrapper class around a {@link FullTextQuery} object and the Type of the entities to be returned
+ * Wrapper class around a {@link SearchQuery} object and the Type of the entities to be returned
  * by the query. An instance of this class is set as the source of a
  * {@link FullTextQueryCreatedEvent} object.
  * 
  * @since 2.3.0
  */
-public class FullTextQueryAndEntityClass {
+public class FullTextQueryAndEntityClass<T> {
 	
-	private FullTextQuery query;
+	private SearchQuery<T> query;
 	
 	private Class<?> entityClass;
 	
-	public FullTextQueryAndEntityClass(FullTextQuery query, Class<?> entityClass) {
+	public FullTextQueryAndEntityClass(SearchQuery<T> query, Class<?> entityClass) {
 		this.query = query;
 		this.entityClass = entityClass;
 	}
@@ -34,7 +34,7 @@ public class FullTextQueryAndEntityClass {
 	 *
 	 * @return the query
 	 */
-	public FullTextQuery getQuery() {
+	public SearchQuery<T> getQuery() {
 		return query;
 	}
 	

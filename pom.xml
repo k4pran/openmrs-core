@@ -229,6 +229,11 @@
 				<version>${hibernateVersion}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core-jakarta</artifactId>
+				<version>5.6.15.Final</version>
+			</dependency>
+			<dependency>
 				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
 				<version>${hibernateValidatorVersion}</version>
@@ -255,7 +260,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.lucene</groupId>
-				<artifactId>lucene-analyzers-phonetic</artifactId>
+				<artifactId>lucene-analysis-phonetic</artifactId>
 				<version>${luceneVersion}</version>
 			</dependency>
 			<dependency>
@@ -1232,7 +1237,7 @@
 		<hibernateVersion>6.6.9.Final</hibernateVersion>
 		<hibernateValidatorVersion>6.2.5.Final</hibernateValidatorVersion>
 		<hibernateSearchVersion>7.2.2.Final</hibernateSearchVersion>
-		<luceneVersion>5.5.5</luceneVersion>
+		<luceneVersion>9.11.1</luceneVersion>
 		<aspectjVersion>1.9.22.1</aspectjVersion>
 		<jacksonVersion>2.18.3</jacksonVersion>
 		<junitVersion>5.11.4</junitVersion>
