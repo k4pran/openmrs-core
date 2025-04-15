@@ -96,20 +96,21 @@
 				<type>war</type>
 			</dependency>
 			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>4.0.1</version>
+				<groupId>jakarta.servlet</groupId>
+				<artifactId>jakarta.servlet-api</artifactId>
+				<version>6.1.0</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>jsp-api</artifactId>
-				<version>2.0</version>
+				<groupId>jakarta.servlet.jsp</groupId>
+				<artifactId>jakarta.servlet.jsp-api</artifactId>
+				<version>4.0.0</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
-				<groupId>javax.servlet.jsp.jstl</groupId>
-				<artifactId>javax.servlet.jsp.jstl-api</artifactId>
-				<version>1.2.2</version>
+				<groupId>jakarta.servlet.jsp.jstl</groupId>
+				<artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+				<version>3.0.2</version>
 			</dependency>
 			<dependency>
 				<groupId>taglibs</groupId>
@@ -209,14 +210,40 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.javassist</groupId>
-				<artifactId>javassist</artifactId>
-				<version>3.30.2-GA</version>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context-support</artifactId>
+				<version>${springVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ehcache</groupId>
+				<artifactId>ehcache</artifactId>
+				<version>${ehcacheVersion}</version>
+<!--				<classifier>jakarta</classifier>-->
+			</dependency>
+			<dependency>
+				<groupId>javax.cache</groupId>
+				<artifactId>cache-api</artifactId>
+				<version>${jcacheVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jaxb</groupId>
+				<artifactId>jaxb-runtime</artifactId>
+				<version>2.3.6</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.xml.bind</groupId>
+				<artifactId>jaxb-api</artifactId>
+				<version>2.3.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-core</artifactId>
+				<artifactId>hibernate-core-jakarta</artifactId>
 				<version>${hibernateVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.javassist</groupId>
+				<artifactId>javassist</artifactId>
+				<version>3.30.2-GA</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>
@@ -224,31 +251,18 @@
 				<version>${hibernateVersion}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-ehcache</artifactId>
-				<version>${hibernateVersion}</version>
-				<exclusions>
-					<!-- Excluding since we are using a newer version where
-					arifactId is ehcache instead of ehcache-core -->
-					<exclusion>
-						<groupId>net.sf.ehcache</groupId>
-						<artifactId>ehcache-core</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
-				<version>6.1.2.Final</version>
+				<version>7.0.5.Final</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-search-orm</artifactId>
+				<groupId>org.hibernate.search</groupId>
+				<artifactId>hibernate-search-v5migrationhelper-orm-jakarta</artifactId>
 				<version>${hibernateSearchVersion}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-envers</artifactId>
+				<artifactId>hibernate-envers-jakarta</artifactId>
 				<version>${hibernateVersion}</version>
 			</dependency>
 			<dependency>
@@ -518,11 +532,6 @@
 				<groupId>org.codehaus.sonar-plugins.java</groupId>
 				<artifactId>sonar-jacoco-listeners</artifactId>
 				<version>3.2</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sf.ehcache</groupId>
-				<artifactId>ehcache</artifactId>
-				<version>2.10.10.4.43</version>
 			</dependency>
 			<dependency>
 			    <groupId>commons-validator</groupId>
@@ -1231,15 +1240,18 @@
 			 For instance, our version of Lucene is tied to the version of Hibernate Search. Similarly, our
 			 version of Hibernate Search must be compatible with the version of Hibernate and Hibernate must
 			 be compatible with our version of Spring. -->
-		<springVersion>5.3.30</springVersion>
+		<springVersion>6.2.5</springVersion>
 		<hibernateVersion>5.6.15.Final</hibernateVersion>
-		<hibernateSearchVersion>5.11.12.Final</hibernateSearchVersion>
+		<hibernateSearchVersion>6.2.4.Final</hibernateSearchVersion>
 		<luceneVersion>5.5.5</luceneVersion>
 		<aspectjVersion>1.9.23</aspectjVersion>
 		<jacksonVersion>2.18.3</jacksonVersion>
 		<junitVersion>5.11.4</junitVersion>
 		<mockitoVersion>3.12.4</mockitoVersion>
 		<hamcrestVersion>3.0</hamcrestVersion>
+		<ehcacheVersion>3.10.8</ehcacheVersion>
+		<jcacheVersion>1.1.1</jcacheVersion>
+		<jaxbVersion>4.0.5</jaxbVersion>
 
 		<slf4jVersion>1.7.36</slf4jVersion>
 		<log4jVersion>2.22.1</log4jVersion>

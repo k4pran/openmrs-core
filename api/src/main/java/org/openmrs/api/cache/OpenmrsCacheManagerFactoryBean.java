@@ -12,11 +12,9 @@ package org.openmrs.api.cache;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
-
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.config.CacheConfiguration;
+//import net.sf.ehcache.Cache;
+//import net.sf.ehcache.CacheManager;
+//import net.sf.ehcache.config.CacheConfiguration;
 
 /**
  * This class creates cache configurations from apiCacheConfig.properties files in the classpath. This file should be
@@ -29,21 +27,21 @@ import net.sf.ehcache.config.CacheConfiguration;
  * userSearchLocales.timeToLiveSeconds=300
  * userSearchLocales.memoryStoreEvictionPolicy=LRU
  */
-public class OpenmrsCacheManagerFactoryBean extends EhCacheManagerFactoryBean {
-
-	@Override
-	public CacheManager getObject() {
-		CacheManager cacheManager = super.getObject();
-
-		Map<String, CacheConfiguration> cacheConfig = cacheManager.getConfiguration().getCacheConfigurations();
-
-		List<CacheConfiguration> cacheConfigurations = CachePropertiesUtil.getCacheConfigurations();
-		cacheConfigurations.stream()
-				.filter(cc ->
-						cacheConfig.get(cc.getName()) == null)
-				.forEach(cc ->
-						cacheManager.addCache(new Cache(cc)));
-
-		return cacheManager;
-	}
-}
+//public class OpenmrsCacheManagerFactoryBean extends EhCacheManagerFactoryBean {
+//
+//	@Override
+//	public CacheManager getObject() {
+//		CacheManager cacheManager = super.getObject();
+//
+//		Map<String, CacheConfiguration> cacheConfig = cacheManager.getConfiguration().getCacheConfigurations();
+//
+//		List<CacheConfiguration> cacheConfigurations = CachePropertiesUtil.getCacheConfigurations();
+//		cacheConfigurations.stream()
+//				.filter(cc ->
+//						cacheConfig.get(cc.getName()) == null)
+//				.forEach(cc ->
+//						cacheManager.addCache(new Cache(cc)));
+//
+//		return cacheManager;
+//	}
+//}

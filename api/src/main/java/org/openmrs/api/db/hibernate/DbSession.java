@@ -128,7 +128,7 @@ public class DbSession {
 	 *
 	 * @param name The name given to the template
 	 * @return The ProcedureCall
-	 * @see javax.persistence.NamedStoredProcedureQuery
+	 * @see jakarta.persistence.NamedStoredProcedureQuery
 	 */
 	public ProcedureCall getNamedProcedureCall(String name) {
 		return getSession().getNamedProcedureCall(name);

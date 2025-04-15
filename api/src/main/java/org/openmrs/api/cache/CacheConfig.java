@@ -9,12 +9,18 @@
  */
 package org.openmrs.api.cache;
 
+import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+
+import javax.cache.Caching;
+import javax.cache.spi.CachingProvider;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Objects;
 
 /**
  * CacheConfig provides a cache manager for the @Cacheable annotation and uses ehCache under the hood.
@@ -24,20 +30,33 @@ import org.springframework.core.io.ClassPathResource;
 @Configuration
 public class CacheConfig {
 
-    @Bean(name = "apiCacheManagerFactoryBean")
-    public EhCacheManagerFactoryBean apiCacheManagerFactoryBean(){
-        OpenmrsCacheManagerFactoryBean cacheManagerFactoryBean = new OpenmrsCacheManagerFactoryBean();
-        cacheManagerFactoryBean.setConfigLocation(new ClassPathResource("ehcache-api.xml"));
-        cacheManagerFactoryBean.setShared(false);
-        cacheManagerFactoryBean.setAcceptExisting(true);
+//    @Bean(name = "apiCacheManagerFactoryBean")
+//    public EhCacheManagerFactoryBean apiCacheManagerFactoryBean() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+//		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+//			.build(); 
+//		
+//		OpenmrsCacheManagerFactoryBean cacheManagerFactoryBean = new OpenmrsCacheManagerFactoryBean();
+//        cacheManagerFactoryBean.setConfigLocation(new ClassPathResource("ehcache-api.xml"));
+//        cacheManagerFactoryBean.setShared(false);
+//        cacheManagerFactoryBean.setAcceptExisting(true);
+//
+//        return cacheManagerFactoryBean;
+//    }
 
-        return cacheManagerFactoryBean;
-    }
+	@Bean
+	public CacheManager cacheManager() throws URISyntaxException {
+		CachingProvider provider = Caching.getCachingProvider(EhcacheCachingProvider.class.getName());
 
-    @Bean(name = "apiCacheManager")
-    public CacheManager cacheManager() {
-        return new EhCacheCacheManager(apiCacheManagerFactoryBean().getObject());
-    }
+		URL configXmlUrl = getClass().getResource("/ehcache-api.xml");
+		Objects.requireNonNull(configXmlUrl, "Ehcache configuration file '/ehcache-api.xml' not found in classpath");
+		URI configUri = configXmlUrl.toURI();
+		
+		javax.cache.CacheManager jCacheManager = provider.getCacheManager(
+			configUri,
+			getClass().getClassLoader()
+		);
+		return new JCacheCacheManager(jCacheManager);
+	}
 
 
 }
