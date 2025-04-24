@@ -11,18 +11,19 @@ package org.openmrs.api.db.hibernate.search.bridge;
 
 import java.util.Locale;
 
-import org.hibernate.search.bridge.StringBridge;
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge;
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext;
 
 /**
  * Indexes locales as {@link Locale#toString()}.
  */
-public class LocaleFieldBridge implements StringBridge {
+public class LocaleFieldBridge implements ValueBridge<Locale, String> {
 	
 	/**
-	 * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
+	 * @see org.hibernate.search.mapper.pojo.bridge.ValueBridge#toIndexedValue(Object, ValueBridgeToIndexedValueContext) 
 	 */
 	@Override
-	public String objectToString(Object object) {
-		return object.toString();
+	public String toIndexedValue(Locale value, ValueBridgeToIndexedValueContext context) {
+		return value == null ? null : value.toString();
 	}
 }

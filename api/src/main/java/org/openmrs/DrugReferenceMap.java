@@ -24,7 +24,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.annotations.CascadeType;
@@ -55,7 +54,6 @@ public class DrugReferenceMap extends BaseOpenmrsObject implements Auditable, Se
 
 	@ManyToOne
 	@JoinColumn(name = "drug_id", nullable = false)
-	@ContainedIn
 	private Drug drug;
 
 	@ManyToOne

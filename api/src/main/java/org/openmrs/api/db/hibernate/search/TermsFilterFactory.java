@@ -9,68 +9,51 @@
  */
 package org.openmrs.api.db.hibernate.search;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.hibernate.search.annotations.Factory;
-import org.hibernate.search.annotations.Key;
-import org.hibernate.search.filter.FilterKey;
-import org.hibernate.search.filter.StandardFilterKey;
-import org.hibernate.search.filter.impl.CachingWrapperQuery;
+import org.hibernate.search.backend.lucene.LuceneExtension;
+import org.hibernate.search.engine.search.predicate.SearchPredicate;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 
 public class TermsFilterFactory {
-	
-	private Set<Set<Term>> includeTerms = new HashSet<>();
-	
-	private Set<Term> excludeTerms = new HashSet<>();
-	
-	public void setIncludeTerms(Set<Set<Term>> terms) {
-		this.includeTerms = new HashSet<>(terms);
-	}
-	
-	public void setExcludeTerms(Set<Term> terms) {
-		this.excludeTerms = new HashSet<>(terms);
-	}
 
-	@Key
-	public FilterKey getKey() {
-		StandardFilterKey key = new StandardFilterKey();
-		key.addParameter(includeTerms);
-		key.addParameter(excludeTerms);
-		return key;
-	}
-	
-	@Factory
-	public Query getQuery() {
-		BooleanQuery query = new BooleanQuery();
+	public static SearchPredicate getQuery(SearchPredicateFactory f, Query luceneExtension, Set<Set<Term>> includeTerms, Set<Term> excludeTerms) {
+		BooleanPredicateClausesStep<?> rootBool = f.bool();
 
-		if (includeTerms.isEmpty()) {
-			query.add(new MatchAllDocsQuery(), Occur.MUST);
-		} else {
-			for (Set<Term> terms : includeTerms) {
+		SearchPredicate parsed = f
+			.extension( LuceneExtension.get() )
+			.fromLuceneQuery( luceneExtension )
+			.toPredicate();
+		rootBool.must( parsed );
 
-				if (terms.size() == 1) {
-					query.add(new TermQuery(terms.iterator().next()), Occur.MUST);
-				} else if (terms.size() > 1) {
-					BooleanQuery subquery = new BooleanQuery();
-					for (Term term : terms) {
-						subquery.add(new TermQuery(term), Occur.SHOULD);
-					}
-					query.add(subquery, Occur.MUST);
-				}
+		for (Set<Term> terms : includeTerms) {
+			if (terms.size() == 1) {
+				Term t = terms.iterator().next();
+				rootBool.must(
+					f.match().field( t.field() ).matching( t.text() )
+				);
+			} else {
+				rootBool.must(
+					f.bool(inner -> {
+						for (Term t : terms) {
+							inner.should(
+								f.match().field(t.field()).matching(t.text())
+							);
+						}
+					})
+				);
 			}
 		}
 
-		for (Term term : excludeTerms) {
-			query.add(new TermQuery(term), Occur.MUST_NOT);
+		for (Term t : excludeTerms) {
+			rootBool.mustNot(
+				f.match().field(t.field()).matching(t.text())
+			);
 		}
-		
-		return new CachingWrapperQuery(query);
+
+		return rootBool.toPredicate();
 	}
 }

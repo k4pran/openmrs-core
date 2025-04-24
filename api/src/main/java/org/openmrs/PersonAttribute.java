@@ -18,7 +18,6 @@ import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
@@ -47,6 +46,10 @@ import org.slf4j.LoggerFactory;
 public class PersonAttribute extends BaseChangeableOpenmrsData implements java.io.Serializable, Comparable<PersonAttribute> {
 	
 	public static final long serialVersionUID = 11231211232111L;
+	public static final String VALUE_PHRASE = "valuePhrase";
+	public static final String VALUE_PHRASE_EXACT = "valueExact";
+	public static final String VALUE_PHRASE_START = "valueStart";
+	public static final String VALUE_PHRASE_ANYWHERE = "valueAnywhere";
 	
 	private static final Logger log = LoggerFactory.getLogger(PersonAttribute.class);
 	
@@ -61,10 +64,10 @@ public class PersonAttribute extends BaseChangeableOpenmrsData implements java.i
 	private PersonAttributeType attributeType;
 
 	@Fields({
-			@Field(name = "valuePhrase", analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER), boost = @Boost(8f)),
-			@Field(name = "valueExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "valueStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "valueAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
+			@Field(name = VALUE_PHRASE, analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER)),
+			@Field(name = VALUE_PHRASE_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = VALUE_PHRASE_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = VALUE_PHRASE_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
 	})
 	private String value;
 	

@@ -17,7 +17,6 @@ import java.util.Comparator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
@@ -42,6 +41,10 @@ import org.slf4j.LoggerFactory;
 public class PatientIdentifier extends BaseChangeableOpenmrsData implements java.io.Serializable, Cloneable, Comparable<PatientIdentifier> {
 	
 	public static final long serialVersionUID = 1123121L;
+	public static final String IDENTIFIER_PHRASE = "identifierPhrase";
+	public static final String IDENTIFIER_PHRASE_EXACT = "identifierExact";
+	public static final String IDENTIFIER_PHRASE_START = "identifierStart";
+	public static final String IDENTIFIER_PHRASE_ANYWHERE = "identifierAnywhere";
 	
 	private static final Logger log = LoggerFactory.getLogger(PatientIdentifier.class);
 	
@@ -57,10 +60,10 @@ public class PatientIdentifier extends BaseChangeableOpenmrsData implements java
 	private Patient patient;
 
 	@Fields({
-			@Field(name = "identifierPhrase", analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER), boost = @Boost(8f)),
-			@Field(name = "identifierExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "identifierStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "identifierAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
+			@Field(name = IDENTIFIER_PHRASE, analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER)),
+			@Field(name = IDENTIFIER_PHRASE_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = IDENTIFIER_PHRASE_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = IDENTIFIER_PHRASE_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
 	})
 	@SortableField(forField = "identifierExact")
 	private String identifier;

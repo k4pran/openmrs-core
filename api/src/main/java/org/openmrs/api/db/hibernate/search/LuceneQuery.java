@@ -9,12 +9,7 @@
  */
 package org.openmrs.api.db.hibernate.search;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.Term;
@@ -27,6 +22,12 @@ import org.apache.lucene.search.Query;
 import org.hibernate.Session;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
+import org.hibernate.search.backend.lucene.search.spi.LuceneMigrationUtils;
+import org.hibernate.search.engine.search.predicate.SearchPredicate;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.scope.SearchScope;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.openmrs.api.db.FullTextSessionFactory;
 import org.openmrs.PatientIdentifier;
@@ -53,6 +54,36 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 	private Set<Object> skipSameValues;
 
 	boolean useOrQueryParser = false;
+	
+	protected final static Map<String, Float> boostMap = new HashMap<>();
+	
+	static {
+		boostMap.put(PersonName.GIVEN_NAME_EXACT, 8f);
+		boostMap.put(PersonName.GIVEN_NAME_START, 4f);
+		boostMap.put(PersonName.GIVEN_NAME_ANYWHERE, 2f);
+		boostMap.put(PersonName.GIVEN_NAME_SOUNDEX, 1f);
+		
+		boostMap.put(PersonName.MIDDLE_NAME_EXACT, 4f);
+		boostMap.put(PersonName.MIDDLE_NAME_START, 2f);
+		boostMap.put(PersonName.MIDDLE_NAME_SOUNDEX, 1f);
+		
+		boostMap.put(PersonName.FAMILY_NAME_EXACT, 8f);
+		boostMap.put(PersonName.FAMILY_NAME_START, 4f);
+		boostMap.put(PersonName.FAMILY_NAME_ANYWHERE, 2f);
+		boostMap.put(PersonName.FAMILY_NAME_SOUNDEX, 1f);
+		
+		boostMap.put(PersonName.FAMILY_NAME_2_EXACT, 4f);
+		boostMap.put(PersonName.FAMILY_NAME_2_START, 2f);
+		boostMap.put(PersonName.FAMILY_NAME_2_SOUNDEX, 1f);
+		
+		boostMap.put(PatientIdentifier.IDENTIFIER_PHRASE, 8f);
+		boostMap.put(PatientIdentifier.IDENTIFIER_PHRASE_EXACT, 4f);
+		boostMap.put(PatientIdentifier.IDENTIFIER_PHRASE_START, 2f);
+		
+		boostMap.put(PersonAttribute.VALUE_PHRASE, 8f);
+		boostMap.put(PersonAttribute.VALUE_PHRASE_EXACT, 4f);
+		boostMap.put(PersonAttribute.VALUE_PHRASE_START, 2f);
+	}
 	
 	/**
 	 * Normal uses a textual match algorithm for the search
@@ -95,6 +126,7 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 				if (query.isEmpty()) {
 					return new MatchAllDocsQuery();
 				}
+				
 				return newQueryParser().parse(query);
 			}
 			
@@ -257,7 +289,7 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 		} else {
 			analyzer = getFullTextSession().getSearchFactory().getAnalyzer(getType());
 		}
-		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields.toArray(new String[fields.size()]), analyzer);
+		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields.toArray(new String[fields.size()]), analyzer, boostMap);
 
 		setDefaultOperator(queryParser);
 		return queryParser;
@@ -440,12 +472,16 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 			throw new IllegalStateException("Invalid query", e);
 		}
 		
-		FullTextQuery fullTextQuery = getFullTextSession().createFullTextQuery(query, getType());
+		SearchSession searchSession = Search.session(getSession());
+		SearchScope<?> scope = searchSession.scope(getType());
+		SearchPredicateFactory factory = scope.predicate();
 
-		fullTextQuery.enableFullTextFilter("termsFilterFactory").setParameter("includeTerms", includeTerms)
-				.setParameter("excludeTerms", excludeTerms);
+		SearchPredicate combinedPredicate = TermsFilterFactory.getQuery(factory, query, includeTerms, excludeTerms);
 
-		fullTextQuery.setFilter(termsFilter);
+		org.apache.lucene.search.Query combinedQuery =
+			LuceneMigrationUtils.toLuceneQuery( combinedPredicate );
+
+		FullTextQuery fullTextQuery = getFullTextSession().createFullTextQuery(combinedQuery, getType());
 
 		adjustFullTextQuery(fullTextQuery);
 

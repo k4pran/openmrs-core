@@ -65,10 +65,10 @@
          <groupId>commons-io</groupId>
          <artifactId>commons-io</artifactId>
       </dependency>
-      <dependency>
-         <groupId>commons-fileupload</groupId>
-         <artifactId>commons-fileupload</artifactId>
-      </dependency>
+	   <dependency>
+		   <groupId>org.apache.commons</groupId>
+		   <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
+	   </dependency>
       <dependency>
          <groupId>org.springframework</groupId>
          <artifactId>spring-web</artifactId>
@@ -131,7 +131,7 @@
 	   <dependency>
 		   <groupId>org.apache.tomcat</groupId>
 		   <artifactId>tomcat-jasper</artifactId>
-		   <version>8.5.71</version>
+		   <version>11.0.6</version>
 		   <scope>provided</scope>
 	   </dependency>
 	   <dependency>

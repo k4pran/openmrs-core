@@ -27,18 +27,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FullTextFilterDef;
-import org.hibernate.search.annotations.FullTextFilterDefs;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.openmrs.annotation.AllowDirectAccess;
 import org.openmrs.api.APIException;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
-import org.openmrs.api.db.hibernate.search.TermsFilterFactory;
 import org.openmrs.customdatatype.CustomValueDescriptor;
 import org.openmrs.customdatatype.Customizable;
 import org.openmrs.util.LocaleUtility;
@@ -69,7 +65,6 @@ import org.springframework.util.ObjectUtils;
  * @see ConceptMap
  * @see ConceptService
  */
-@FullTextFilterDefs( { @FullTextFilterDef(name = "termsFilterFactory", impl = TermsFilterFactory.class) })
 @Audited
 public class Concept extends BaseOpenmrsObject implements Auditable, Retireable, Serializable, Attributable<Concept>,Customizable<ConceptAttribute> {
 	
@@ -110,7 +105,6 @@ public class Concept extends BaseOpenmrsObject implements Auditable, Retireable,
 	private Date dateChanged;
 	
 	@AllowDirectAccess
-	@ContainedIn
 	private Collection<ConceptName> names;
 	
 	@AllowDirectAccess

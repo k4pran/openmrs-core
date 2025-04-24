@@ -10,7 +10,6 @@
 package org.openmrs;
 
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.IndexedEmbedded;
 
@@ -27,7 +26,6 @@ public class ConceptMap extends BaseConceptMap {
 	@DocumentId
 	private Integer conceptMapId;
 	
-	@ContainedIn
 	private Concept concept;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)

@@ -21,7 +21,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
@@ -45,6 +44,26 @@ import org.springframework.util.StringUtils;
 public class PersonName extends BaseChangeableOpenmrsData implements java.io.Serializable, Cloneable, Comparable<PersonName> {
 	
 	public static final long serialVersionUID = 4353L;
+	
+	public static final String GIVEN_NAME_EXACT = "givenNameExact";
+	public static final String GIVEN_NAME_START = "givenNameStart";
+	public static final String GIVEN_NAME_ANYWHERE = "givenNameAnywhere";
+	public static final String GIVEN_NAME_SOUNDEX = "givenNameSoundex";
+	
+	public static final String MIDDLE_NAME_EXACT = "middleNameExact";
+	public static final String MIDDLE_NAME_START = "middleNameStart";
+	public static final String MIDDLE_NAME_ANYWHERE = "middleNameAnywhere";
+	public static final String MIDDLE_NAME_SOUNDEX = "middleNameSoundex";
+	
+	public static final String FAMILY_NAME_EXACT = "familyNameExact";
+	public static final String FAMILY_NAME_START = "familyNameStart";
+	public static final String FAMILY_NAME_ANYWHERE = "familyNameAnywhere";
+	public static final String FAMILY_NAME_SOUNDEX = "familyNameSoundex";
+	
+	public static final String FAMILY_NAME_2_EXACT = "familyName2Exact";
+	public static final String FAMILY_NAME_2_START = "familyName2Start";
+	public static final String FAMILY_NAME_2_ANYWHERE = "familyName2Anywhere";
+	public static final String FAMILY_NAME_2_SOUNDEX = "familyName2Soundex";
 
 	private static final Logger log = LoggerFactory.getLogger(PersonName.class);
 
@@ -58,37 +77,37 @@ public class PersonName extends BaseChangeableOpenmrsData implements java.io.Ser
 	private Boolean preferred = false;
 
 	@Fields({
-			@Field(name = "givenNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(8f)),
-			@Field(name = "givenNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "givenNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "givenNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+			@Field(name = GIVEN_NAME_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = GIVEN_NAME_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = GIVEN_NAME_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
+			@Field(name = GIVEN_NAME_SOUNDEX, analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER))
 	})
 	private String givenName;
 	private String prefix;
 
 	@Fields({
-			@Field(name = "middleNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "middleNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "middleNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
-			@Field(name = "middleNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+			@Field(name = MIDDLE_NAME_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = MIDDLE_NAME_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = MIDDLE_NAME_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
+			@Field(name = MIDDLE_NAME_SOUNDEX, analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER))
 	})
 	private String middleName;
 	
 	private String familyNamePrefix;
 
 	@Fields({
-			@Field(name = "familyNameExact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(8f)),
-			@Field(name = "familyNameStart", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "familyNameAnywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "familyNameSoundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+			@Field(name = FAMILY_NAME_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = FAMILY_NAME_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = FAMILY_NAME_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
+			@Field(name = FAMILY_NAME_SOUNDEX, analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER))
 	})
 	private String familyName;
 
 	@Fields({
-			@Field(name = "familyName2Exact", analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER), boost = @Boost(4f)),
-			@Field(name = "familyName2Start", analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER), boost = @Boost(2f)),
-			@Field(name = "familyName2Anywhere", analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
-			@Field(name = "familyName2Soundex", analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER), boost = @Boost(1f))
+			@Field(name = FAMILY_NAME_2_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = FAMILY_NAME_2_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
+			@Field(name = FAMILY_NAME_2_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER)),
+			@Field(name = FAMILY_NAME_2_SOUNDEX, analyzer =  @Analyzer(definition = LuceneAnalyzers.SOUNDEX_ANALYZER))
 	})
 	private String familyName2;
 	

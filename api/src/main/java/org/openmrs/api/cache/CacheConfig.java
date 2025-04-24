@@ -10,6 +10,7 @@
 package org.openmrs.api.cache;
 
 import org.ehcache.jsr107.EhcacheCachingProvider;
+import org.hibernate.cache.spi.RegionFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +56,7 @@ public class CacheConfig {
 			configUri,
 			getClass().getClassLoader()
 		);
+
 		return new JCacheCacheManager(jCacheManager);
 	}
 

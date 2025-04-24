@@ -695,7 +695,7 @@ public class HibernatePatientDAO implements PatientDAO {
 
 		LuceneQuery<PersonName> nameQuery = personLuceneQuery.getPatientNameQuery(tmpQuery, includeVoided, identifierQuery);
 		LuceneQuery<PersonAttribute> attributeQuery = personLuceneQuery.getPatientAttributeQuery(tmpQuery, includeVoided, nameQuery);
-
+		
 		return identifierQuery.resultSize() + nameQuery.resultSize() + attributeQuery.resultSize();
 	}
 

@@ -32,11 +32,11 @@
          <artifactId>openmrs-web</artifactId>
          <exclusions>
             <exclusion>
-               <groupId>javax.servlet</groupId>
+               <groupId>jakarta.servlet</groupId>
                <artifactId>servlet-api</artifactId>
             </exclusion>
             <exclusion>
-               <groupId>javax.servlet</groupId>
+               <groupId>jakarta.servlet</groupId>
                <artifactId>jsp-api</artifactId>
             </exclusion>
          </exclusions>
