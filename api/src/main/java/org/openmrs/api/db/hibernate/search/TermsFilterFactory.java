@@ -20,14 +20,20 @@ import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 
 public class TermsFilterFactory {
 
-	public static SearchPredicate getQuery(SearchPredicateFactory f, Query luceneExtension, Set<Set<Term>> includeTerms, Set<Term> excludeTerms) {
+	public static SearchPredicate getQuery(SearchPredicateFactory f, Query baseLuceneQuery, Query includeTermsQuery, Set<Set<Term>> includeTerms, Set<Term> excludeTerms) {
 		BooleanPredicateClausesStep<?> rootBool = f.bool();
 
-		SearchPredicate parsed = f
-			.extension( LuceneExtension.get() )
-			.fromLuceneQuery( luceneExtension )
-			.toPredicate();
-		rootBool.must( parsed );
+		rootBool.must(
+			f.extension( LuceneExtension.get() )
+				.fromLuceneQuery( baseLuceneQuery )
+				.toPredicate()
+		);
+
+		rootBool.must(
+			f.extension( LuceneExtension.get() )
+				.fromLuceneQuery( includeTermsQuery )
+				.toPredicate()
+		);
 
 		for (Set<Term> terms : includeTerms) {
 			if (terms.size() == 1) {

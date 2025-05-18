@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -45,9 +46,9 @@ import org.openmrs.util.OpenmrsConstants;
 public class HibernateProviderDAO implements ProviderDAO {
 	
 	private SessionFactory sessionFactory;
-	
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	/**

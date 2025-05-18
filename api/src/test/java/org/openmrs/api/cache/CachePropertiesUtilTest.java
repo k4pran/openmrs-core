@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 
 public class CachePropertiesUtilTest {
 
-//    @Test TODO
-//    public void shouldReturnCacheConfigsFromPropertiesFile(){
-//        List<CacheConfiguration> cacheConfigurations = CachePropertiesUtil.getCacheConfigurations();
-//        assertThat(cacheConfigurations.size(), is(2));
-//        assertThat(cacheConfigurations.get(0).getTimeToIdleSeconds(), is(300L));
-//    }
+    @Test
+    public void shouldReturnCacheConfigsFromPropertiesFile(){
+        List<OpenmrsCacheConfiguration> cacheConfigurations = CachePropertiesUtil.getCacheConfigurations();
+        assertThat(cacheConfigurations.size(), is(2));
+        assertThat(cacheConfigurations.get(0).getProperty("timeToIdleSeconds"), is("300"));
+    }
 }

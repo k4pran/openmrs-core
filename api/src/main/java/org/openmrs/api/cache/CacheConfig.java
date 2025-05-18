@@ -9,6 +9,10 @@
  */
 package org.openmrs.api.cache;
 
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.jsr107.Eh107Configuration;
 import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.hibernate.cache.spi.RegionFactory;
 import org.springframework.cache.CacheManager;
@@ -21,6 +25,8 @@ import javax.cache.spi.CachingProvider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -31,22 +37,11 @@ import java.util.Objects;
 @Configuration
 public class CacheConfig {
 
-//    @Bean(name = "apiCacheManagerFactoryBean")
-//    public EhCacheManagerFactoryBean apiCacheManagerFactoryBean() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-//		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-//			.build(); 
-//		
-//		OpenmrsCacheManagerFactoryBean cacheManagerFactoryBean = new OpenmrsCacheManagerFactoryBean();
-//        cacheManagerFactoryBean.setConfigLocation(new ClassPathResource("ehcache-api.xml"));
-//        cacheManagerFactoryBean.setShared(false);
-//        cacheManagerFactoryBean.setAcceptExisting(true);
-//
-//        return cacheManagerFactoryBean;
-//    }
-
-	@Bean
+	@Bean(name = "apiCacheManager")
 	public CacheManager cacheManager() throws URISyntaxException {
 		CachingProvider provider = Caching.getCachingProvider(EhcacheCachingProvider.class.getName());
+
+//		List<CacheConfiguration> cacheConfigurations = CachePropertiesUtil.getCacheConfigurations();
 
 		URL configXmlUrl = getClass().getResource("/ehcache-api.xml");
 		Objects.requireNonNull(configXmlUrl, "Ehcache configuration file '/ehcache-api.xml' not found in classpath");
@@ -57,8 +52,47 @@ public class CacheConfig {
 			getClass().getClassLoader()
 		);
 
-		return new JCacheCacheManager(jCacheManager);
+		JCacheCacheManager springCacheManager = new JCacheCacheManager(jCacheManager);
+		
+		registerLegacyCaches(jCacheManager);
+		
+		return springCacheManager;
 	}
 
+	private void registerLegacyCaches(javax.cache.CacheManager jCacheManager) {
+		List<OpenmrsCacheConfiguration> props = CachePropertiesUtil.getCacheConfigurations();
 
+		for (OpenmrsCacheConfiguration cfg : props) {
+			String cacheName = cfg.getProperty("name");
+
+			// 3. Build an Ehcache-3 cache config from your properties
+
+			String maxEntries = cfg.getProperty("maxEntriesLocalHeap");
+			
+			CacheConfigurationBuilder<Object,Object> builder =
+				CacheConfigurationBuilder
+					.newCacheConfigurationBuilder(
+						Object.class, Object.class,
+						ResourcePoolsBuilder.heap(Long.parseLong(maxEntries == null ? "1000" : maxEntries))
+					);
+
+			// if you have TTL settings
+			if (cfg.getProperty("timeToLiveSeconds") != null) {
+				long ttl = Long.parseLong(cfg.getProperty("timeToLiveSeconds"));
+				builder = builder
+					.withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(ttl)));
+			}
+
+			// …handle other settings similarly…
+
+			org.ehcache.config.CacheConfiguration<Object,Object> eh3Config = builder.build();
+
+			// 4. Wrap it for JCache…
+			javax.cache.configuration.Configuration<Object,Object> jcacheConfig =
+				Eh107Configuration.fromEhcacheCacheConfiguration(eh3Config);
+
+			// 5. And create it
+			jCacheManager.createCache(cacheName, jcacheConfig);
+		}
+	}
 }

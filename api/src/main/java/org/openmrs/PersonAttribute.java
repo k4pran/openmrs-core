@@ -23,6 +23,11 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.hibernate.search.LuceneAnalyzers;
 import org.openmrs.util.OpenmrsClassLoader;
@@ -58,9 +63,15 @@ public class PersonAttribute extends BaseChangeableOpenmrsData implements java.i
 	private Integer personAttributeId;
 
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@AssociationInverseSide(            // Hibernate Search 6 annotation
+		inversePath = @ObjectPath(
+			@PropertyValue(propertyName = "attributes")
+		)
+	)
 	private Person person;
 
 	@IndexedEmbedded
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private PersonAttributeType attributeType;
 
 	@Fields({

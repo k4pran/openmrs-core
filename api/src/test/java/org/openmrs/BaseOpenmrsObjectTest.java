@@ -234,7 +234,7 @@ public class BaseOpenmrsObjectTest extends BaseContextSensitiveTest {
 	 */
 	@Test
 	public void equals_shouldReturnfalseIfHibernateProxyOfOneThingIsComparedtoHibernateProxyofSomething() {
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		Session session = sessionFactory.getCurrentSession();
 		assertFalse((session.load(Patient.class, 2)).equals((session.load(Concept.class, 11))));
 	}
@@ -244,7 +244,7 @@ public class BaseOpenmrsObjectTest extends BaseContextSensitiveTest {
 	 */
 	@Test
 	public void equals_shouldReturnFalseIfHibernateProxyOfOneThingIsComparedtoNonHibernateProxyofSomething() {
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		Session session = sessionFactory.getCurrentSession();
 
 		//NonHibernate managed class declaration
@@ -403,7 +403,7 @@ public class BaseOpenmrsObjectTest extends BaseContextSensitiveTest {
 	 */
 	@Test
 	public void equals_shouldReturnTrueIfHibernateProxyOfOneObjectComparedToNonHibernateProxyOfTheSameObject(){
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		Session session = sessionFactory.getCurrentSession();
 
 		Patient patient = (Patient) session.get(Patient.class, 2);
@@ -417,7 +417,7 @@ public class BaseOpenmrsObjectTest extends BaseContextSensitiveTest {
 	 */
 	@Test
 	public void equals_shouldReturnTrueIfHibernateProxyOfSomeObjectComparedToAnotherHibernateProxyOfTheSameObject(){
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		Session session = sessionFactory.getCurrentSession();
 
 		assertTrue(session.load(Patient.class, 2).equals((session.load(Patient.class, 2)))) ;

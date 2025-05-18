@@ -32,7 +32,7 @@ public class PersonAttributeHelperTest extends BaseContextSensitiveTest {
 	@BeforeEach
 	public void getPersonDAO() {
 		executeDataSet(PEOPLE_FROM_THE_SHIRE_XML);
-		sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		helper = new PersonAttributeHelper(sessionFactory);
 	}
 	

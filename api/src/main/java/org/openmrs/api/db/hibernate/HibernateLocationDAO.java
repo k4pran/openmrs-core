@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -40,11 +41,11 @@ public class HibernateLocationDAO implements LocationDAO {
 	private SessionFactory sessionFactory;
 	
 	/**
-	 * @see org.openmrs.api.db.LocationDAO#setSessionFactory(org.hibernate.SessionFactory)
+	 * @see org.openmrs.api.db.LocationDAO#setEntityManagerFactory(EntityManagerFactory) 
 	 */
 	@Override
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	/**

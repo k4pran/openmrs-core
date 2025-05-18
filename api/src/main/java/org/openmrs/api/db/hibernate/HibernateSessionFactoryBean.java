@@ -27,6 +27,7 @@ import org.hibernate.Interceptor;
 import org.hibernate.boot.Metadata;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.jpa.boot.spi.IntegratorProvider;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.Module;
@@ -36,9 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
-public class HibernateSessionFactoryBean extends LocalSessionFactoryBean implements Integrator {
+public class HibernateSessionFactoryBean extends LocalContainerEntityManagerFactoryBean implements Integrator, IntegratorProvider {
 	
 	private static final Logger log = LoggerFactory.getLogger(HibernateSessionFactoryBean.class);
 	
@@ -107,9 +108,9 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 	 * Overridden to populate mappings from modules.
 	 */
 	@Override
-	public void afterPropertiesSet() throws IOException {
+	public void afterPropertiesSet() {
 		log.debug("Configuring hibernate sessionFactory properties");
-		Properties config = getHibernateProperties();
+		Map<String, Object> config = getJpaPropertyMap();
 		
 		Properties moduleProperties = Context.getConfigProperties();
 		
@@ -119,9 +120,9 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 			String prop = (String) key;
 			String value = (String) entry.getValue();
 			log.trace("Setting module property: " + prop + ":" + value);
-			config.setProperty(prop, value);
+			config.put(prop, value);
 			if (!prop.startsWith("hibernate")) {
-				config.setProperty("hibernate." + prop, value);
+				config.put("hibernate." + prop, value);
 			}
 		}
 		
@@ -133,9 +134,9 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 			String prop = (String) key;
 			String value = (String) entry.getValue();
 			log.trace("Setting property: " + prop + ":" + value);
-			config.setProperty(prop, value);
+			config.put(prop, value);
 			if (!prop.startsWith("hibernate")) {
-				config.setProperty("hibernate." + prop, value);
+				config.put("hibernate." + prop, value);
 			}
 		}
 		
@@ -149,8 +150,9 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 			
 			// Only load in the default properties if they don't exist
 			for (Entry<Object, Object> prop : props.entrySet()) {
-				if (!config.containsKey(prop.getKey())) {
-					config.put(prop.getKey(), prop.getValue());
+				String propKeyString = prop.getKey() == null ? "" : prop.getKey().toString();
+				if (!config.containsKey(propKeyString)) {
+					config.put(propKeyString, prop.getValue());
 				}
 			}
 			
@@ -161,7 +163,7 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 		
 		log.debug("Replacing variables in hibernate properties");
 		final String applicationDataDirectory = OpenmrsUtil.getApplicationDataDirectory();
-		for (Entry<Object, Object> entry : config.entrySet()) {
+		for (Entry<String, Object> entry : config.entrySet()) {
 			String value = (String) entry.getValue();
 			
 			value = value.replace("%APPLICATION_DATA_DIRECTORY%", applicationDataDirectory);
@@ -177,21 +179,21 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 		for (String key : keys) {
 			chainingInterceptor.addInterceptor(interceptors.get(key));
 		}
-		
-		setEntityInterceptor(chainingInterceptor);
+
+		config.put("hibernate.ejb.interceptor", chainingInterceptor);
 		
 		//Adding each module's mapping file to the list of mapping resources
 		setMappingResources(getModuleMappingResources().toArray(new String[0]));
 		
 		setPackagesToScan(getModulePackagesWithMappedClasses().toArray(new String[0]));
 		
-		setHibernateIntegrators(this);
-		
+		config.put("hibernate.integrator_provider", this);
+
 		super.afterPropertiesSet();
 	}
 	
 	/**
-	 * @see org.springframework.orm.hibernate3.LocalSessionFactoryBean#destroy()
+	 * @see org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean#destroy()
 	 */
 	@Override
 	public void destroy() throws HibernateException {
@@ -204,9 +206,15 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 		}
 	}
 
+	/**
+	 * @since 2.4
+	 */
+	public Metadata getMetadata() {
+		return metadata;
+	}
+
 	@Override
-	public void integrate(Metadata metadata, SessionFactoryImplementor sessionFactory,
-			SessionFactoryServiceRegistry serviceRegistry) {
+	public void integrate(Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry) {
 		this.metadata = metadata;
 	}
 
@@ -215,10 +223,8 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 		
 	}
 
-	/**
-	 * @since 2.4
-	 */
-	public Metadata getMetadata() {
-		return metadata;
+	@Override
+	public List<Integrator> getIntegrators() {
+		return Collections.singletonList(this);
 	}
 }

@@ -42,7 +42,7 @@ public class HibernateObsDAOTest extends BaseContextSensitiveTest {
 			// fetch the dao from the spring application context
 			dao = (HibernateObsDAO) applicationContext.getBean("obsDAO");
 		
-		sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 	}
 	
 	/**

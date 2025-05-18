@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 
 /**
@@ -24,8 +25,8 @@ public class DbSessionFactory {
 	
 	private SessionFactory sessionFactory;
 	
-	public DbSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public DbSessionFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	public DbSession getCurrentSession() {

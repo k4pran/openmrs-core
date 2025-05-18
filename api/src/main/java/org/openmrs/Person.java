@@ -29,6 +29,9 @@ import org.hibernate.envers.NotAudited;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +90,7 @@ public class Person extends BaseChangeableOpenmrsData {
 	private User personChangedBy;
 	
 	private Date personDateChanged;
-	
+
 	private Boolean personVoided = false;
 
 	private User personVoidedBy;
@@ -96,7 +99,7 @@ public class Person extends BaseChangeableOpenmrsData {
 	
 	private String personVoidReason;
 	
-	@Field
+//	@Field TODO
 	@NotAudited
 	private boolean isPatient;
 	

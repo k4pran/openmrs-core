@@ -13,12 +13,11 @@ import java.util.*;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queries.TermsFilter;
+
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
 import org.hibernate.Session;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
@@ -46,9 +45,9 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 	private Set<Set<Term>> includeTerms = new HashSet<>();
 	
 	private Set<Term> excludeTerms = new HashSet<>();
-
-	private TermsFilter termsFilter;
-
+	
+	private BooleanQuery.Builder includeBuilder;
+	
 	private boolean noUniqueTerms = false;
 
 	private Set<Object> skipSameValues;
@@ -355,7 +354,7 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 			skipSameValues.addAll(luceneQuery.skipSameValues);
 		}
 
-		termsFilter = null;
+		includeBuilder = new BooleanQuery.Builder();
 		if (!documents.isEmpty()) {
 			List<Term> terms = new ArrayList<>();
 			for (Object[] row : documents) {
@@ -364,7 +363,9 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 				}
 			}
 			if (!terms.isEmpty()) {
-				termsFilter = new TermsFilter(terms);
+				for (Term term : terms) {
+					includeBuilder.add(new TermQuery(term), BooleanClause.Occur.SHOULD);
+				}
 			} else {
 				noUniqueTerms = true;
 			}
@@ -476,7 +477,7 @@ public abstract class LuceneQuery<T> extends SearchQuery<T> {
 		SearchScope<?> scope = searchSession.scope(getType());
 		SearchPredicateFactory factory = scope.predicate();
 
-		SearchPredicate combinedPredicate = TermsFilterFactory.getQuery(factory, query, includeTerms, excludeTerms);
+		SearchPredicate combinedPredicate = TermsFilterFactory.getQuery(factory, query, includeBuilder.build(), includeTerms, excludeTerms);
 
 		org.apache.lucene.search.Query combinedQuery =
 			LuceneMigrationUtils.toLuceneQuery( combinedPredicate );

@@ -35,7 +35,7 @@ public class PatientSearchCriteriaTest extends BaseContextSensitiveTest {
 	
 	@BeforeEach
 	public void setUp() {
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		
 		patientSearchCriteria = new PatientSearchCriteria(sessionFactory);
 		globalPropertiesTestHelper = new GlobalPropertiesTestHelper(Context.getAdministrationService());

@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openmrs.Person;
 import org.openmrs.RelationshipType;
-import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.test.jupiter.BaseContextSensitiveTest;
 import org.openmrs.util.GlobalPropertiesTestHelper;
@@ -53,7 +52,7 @@ public class HibernatePersonDAOTest extends BaseContextSensitiveTest {
 		updateSearchIndex();
 		
 		hibernatePersonDAO = (HibernatePersonDAO) applicationContext.getBean("personDAO");
-		sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		
 		personAttributeHelper = new PersonAttributeHelper(sessionFactory);
 		globalPropertiesTestHelper = new GlobalPropertiesTestHelper(Context.getAdministrationService());

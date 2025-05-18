@@ -9,6 +9,9 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -57,15 +60,18 @@ public class HibernateUserDAO implements UserDAO {
 	/**
 	 * Hibernate session factory
 	 */
-	private SessionFactory sessionFactory;
+//	private SessionFactory sessionFactory;
+	
+	@PersistenceContext
+	private EntityManager em;
 	
 	/**
 	 * Set session factory
 	 * 
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+//		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	/**
@@ -77,7 +83,9 @@ public class HibernateUserDAO implements UserDAO {
 		// only change the user's password when creating a new user
 		boolean isNewUser = user.getUserId() == null;
 		
-		sessionFactory.getCurrentSession().saveOrUpdate(user);
+		Session session = em.unwrap(Session.class);
+
+		session.saveOrUpdate(user);
 		
 		if (isNewUser && password != null) {
 			/* In OpenMRS, we are using generation strategy as native which will convert to IDENTITY 
@@ -86,7 +94,7 @@ public class HibernateUserDAO implements UserDAO {
 			 sequences and issues insert on session flush ( batching is possible) . 
 			 PostgreSQL behaves differently than MySQL because it makes use of SEQUENCE strategy. 
 			*/
-			sessionFactory.getCurrentSession().flush();
+			session.flush();
 			
 			//update the new user with the password
 			String salt = Security.getRandomToken();
@@ -105,7 +113,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	@SuppressWarnings("unchecked")
 	public User getUserByUsername(String username) {
-		Query query = sessionFactory.getCurrentSession().createQuery(
+		Query query = em.unwrap(Session.class).createQuery(
 		    "from User u where u.retired = '0' and (u.username = ?0 or u.systemId = ?1)");
 		query.setParameter(0, username);
 		query.setParameter(1, username);
@@ -124,7 +132,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public User getUserByEmail(String email) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<User> cq = cb.createQuery(User.class);
 		Root<User> root = cq.from(User.class);
@@ -140,7 +148,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	public LoginCredential getLoginCredentialByActivationKey(String activationKey) {
 		String key = Security.encodeString(activationKey);
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<LoginCredential> cq = cb.createQuery(LoginCredential.class);
 		Root<LoginCredential> root = cq.from(LoginCredential.class);
@@ -181,8 +189,7 @@ public class HibernateUserDAO implements UserDAO {
 		}
 		catch (Exception e) {}
 		
-		Query query = sessionFactory
-		        .getCurrentSession()
+		Query query = em.unwrap(Session.class)
 		        .createQuery(
 		            "select count(*) from User u where (u.username = :uname1 or u.systemId = :uname2 or u.username = :sysid1 or u.systemId = :sysid2 or u.systemId = :uname3) and u.userId <> :uid");
 		query.setParameter("uname1", username);
@@ -204,7 +211,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	public User getUser(Integer userId) {
 
-		return sessionFactory.getCurrentSession().get(User.class, userId);
+		return em.unwrap(Session.class).get(User.class, userId);
 	}
 	
 	/**
@@ -213,7 +220,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<User> getAllUsers() throws DAOException {
-		return sessionFactory.getCurrentSession().createQuery("from User where not uuid = :daemonUserUuid order by userId")
+		return em.unwrap(Session.class).createQuery("from User where not uuid = :daemonUserUuid order by userId")
 		        .setParameter("daemonUserUuid", Daemon.getDaemonUserUuid()).list();
 	}
 	
@@ -222,14 +229,14 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public void deleteUser(User user) {
-		sessionFactory.getCurrentSession().delete(user);
+		em.unwrap(Session.class).delete(user);
 	}
 	
 	/**
 	 * @see org.openmrs.api.UserService#getUsersByRole(org.openmrs.Role)
 	 */
 	public List<User> getUsersByRole(Role role) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<User> cq = cb.createQuery(User.class);
 		Root<User> root = cq.from(User.class);
@@ -249,7 +256,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<Privilege> getAllPrivileges() throws DAOException {
-		return sessionFactory.getCurrentSession().createQuery("from Privilege p order by p.privilege").list();
+		return em.unwrap(Session.class).createQuery("from Privilege p order by p.privilege").list();
 	}
 	
 	/**
@@ -257,7 +264,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Privilege getPrivilege(String p) throws DAOException {
-		return sessionFactory.getCurrentSession().get(Privilege.class, p);
+		return em.unwrap(Session.class).get(Privilege.class, p);
 	}
 	
 	/**
@@ -265,7 +272,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public void deletePrivilege(Privilege privilege) throws DAOException {
-		sessionFactory.getCurrentSession().delete(privilege);
+		em.unwrap(Session.class).delete(privilege);
 	}
 	
 	/**
@@ -273,7 +280,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Privilege savePrivilege(Privilege privilege) throws DAOException {
-		sessionFactory.getCurrentSession().saveOrUpdate(privilege);
+		em.unwrap(Session.class).saveOrUpdate(privilege);
 		return privilege;
 	}
 	
@@ -282,7 +289,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public void deleteRole(Role role) throws DAOException {
-		sessionFactory.getCurrentSession().delete(role);
+		em.unwrap(Session.class).delete(role);
 	}
 	
 	/**
@@ -290,7 +297,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Role saveRole(Role role) throws DAOException {
-		sessionFactory.getCurrentSession().saveOrUpdate(role);
+		em.unwrap(Session.class).saveOrUpdate(role);
 		return role;
 	}
 	
@@ -300,7 +307,7 @@ public class HibernateUserDAO implements UserDAO {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<Role> getAllRoles() throws DAOException {
-		return sessionFactory.getCurrentSession().createQuery("from Role r order by r.role").list();
+		return em.unwrap(Session.class).createQuery("from Role r order by r.role").list();
 	}
 	
 	/**
@@ -308,7 +315,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Role getRole(String r) throws DAOException {
-		return sessionFactory.getCurrentSession().get(Role.class, r);
+		return em.unwrap(Session.class).get(Role.class, r);
 	}
 	
 	/**
@@ -364,7 +371,7 @@ public class HibernateUserDAO implements UserDAO {
 		credentials.setDateChanged(dateChanged);
 		credentials.setUuid(changeForUser.getUuid());
 		
-		sessionFactory.getCurrentSession().merge(credentials);
+		em.unwrap(Session.class).merge(credentials);
 		
 		// reset lockout 
 		changeForUser.setUserProperty(OpenmrsConstants.USER_PROPERTY_LOCKOUT_TIMESTAMP, "");
@@ -476,7 +483,7 @@ public class HibernateUserDAO implements UserDAO {
 		
 		String hql = "select max(userId) from User";
 		
-		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		Query query = em.unwrap(Session.class).createQuery(hql);
 		
 		Object object = JpaUtils.getSingleResultOrNull(query);
 		
@@ -497,7 +504,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public List<User> getUsersByName(String givenName, String familyName, boolean includeRetired) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<User> cq = cb.createQuery(User.class);
 		Root<User> root = cq.from(User.class);
@@ -525,7 +532,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Privilege getPrivilegeByUuid(String uuid) {
-		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, Privilege.class, uuid);
+		return HibernateUtil.getUniqueEntityByUUID(em, Privilege.class, uuid);
 	}
 	
 	/**
@@ -533,7 +540,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public Role getRoleByUuid(String uuid) {
-		return HibernateUtil.getUniqueEntityByUUID(sessionFactory, Role.class, uuid);
+		return HibernateUtil.getUniqueEntityByUUID(em, Role.class, uuid);
 	}
 	
 	/**
@@ -545,7 +552,7 @@ public class HibernateUserDAO implements UserDAO {
 		
 		if (uuid != null) {
 			uuid = uuid.trim();
-			ret = HibernateUtil.getUniqueEntityByUUID(sessionFactory, User.class, uuid);
+			ret = HibernateUtil.getUniqueEntityByUUID(em, User.class, uuid);
 		}
 		
 		return ret;
@@ -556,7 +563,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public LoginCredential getLoginCredential(User user) {
-		return sessionFactory.getCurrentSession().get(LoginCredential.class, user.getUserId());
+		return em.unwrap(Session.class).get(LoginCredential.class, user.getUserId());
 	}
 	
 	/**
@@ -567,7 +574,7 @@ public class HibernateUserDAO implements UserDAO {
 		if (uuid == null) {
 			return null;
 		} else {
-			return HibernateUtil.getUniqueEntityByUUID(sessionFactory, LoginCredential.class, uuid.trim());
+			return HibernateUtil.getUniqueEntityByUUID(em, LoginCredential.class, uuid.trim());
 		}
 	}
 	
@@ -576,7 +583,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public void updateLoginCredential(LoginCredential credential) {
-		sessionFactory.getCurrentSession().update(credential);
+		em.unwrap(Session.class).update(credential);
 	}
 	
 	/**
@@ -584,7 +591,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public List<User> getUsersByPerson(Person person, boolean includeRetired) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<User> cq = cb.createQuery(User.class);
 		Root<User> root = cq.from(User.class);
@@ -628,7 +635,7 @@ public class HibernateUserDAO implements UserDAO {
 		
 		log.debug("name: " + name);
 		
-		name = HibernateUtil.escapeSqlWildcards(name, sessionFactory);
+		name = HibernateUtil.escapeSqlWildcards(name, em);
 		
 		// Create an HQL query like this:
 		// select distinct user
@@ -690,7 +697,7 @@ public class HibernateUserDAO implements UserDAO {
 			hql.append(" role in (:roleList)");
 		}
 		
-		Query query = sessionFactory.getCurrentSession().createQuery(hql.toString());
+		Query query = em.unwrap(Session.class).createQuery(hql.toString());
 		query.setParameter("DAEMON_USER_UUID", Daemon.getDaemonUserUuid());
 		for (Map.Entry<String, String> e : namesMap.entrySet()) {
 			query.setParameter(e.getKey(), e.getValue());
@@ -708,7 +715,7 @@ public class HibernateUserDAO implements UserDAO {
 	 */
 	@Override
 	public void setUserActivationKey(LoginCredential credentials) {		
-			sessionFactory.getCurrentSession().merge(credentials);	
+			em.unwrap(Session.class).merge(credentials);	
 	}
 
 	/**

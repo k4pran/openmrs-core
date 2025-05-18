@@ -11,6 +11,7 @@ package org.openmrs.api.db.hibernate;
 
 import java.util.List;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.api.db.TemplateDAO;
@@ -33,10 +34,10 @@ public class HibernateTemplateDAO implements TemplateDAO {
 	/**
 	 * Set session factory
 	 * 
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	@Override

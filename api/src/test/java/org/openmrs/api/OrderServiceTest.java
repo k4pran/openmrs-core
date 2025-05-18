@@ -93,15 +93,7 @@ import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -2714,11 +2706,11 @@ public class OrderServiceTest extends BaseContextSensitiveTest {
 
 		HibernateSessionFactoryBean sessionFactoryBean = (HibernateSessionFactoryBean) applicationContext
 			.getBean("&sessionFactory");
-		Configuration configuration = sessionFactoryBean.getConfiguration();
+		Map<String, Object> configuration = sessionFactoryBean.getJpaPropertyMap();
 
 		HibernateAdministrationDAO adminDAO = (HibernateAdministrationDAO) applicationContext.getBean("adminDAO");
 		StandardServiceRegistry standardRegistry = new StandardServiceRegistryBuilder()
-			.configure().applySettings(configuration.getProperties()).build();
+			.configure().applySettings(configuration).build();
 
 		Metadata metaData = new MetadataSources(standardRegistry).addAnnotatedClass(Allergy.class)
 			.addAnnotatedClass(Encounter.class).addAnnotatedClass(SomeTestOrder.class)

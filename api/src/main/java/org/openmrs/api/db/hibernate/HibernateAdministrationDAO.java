@@ -9,6 +9,9 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -61,6 +64,9 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	private static final Logger log = LoggerFactory.getLogger(HibernateAdministrationDAO.class);
 	private static final String PROPERTY = "property";
 	
+	@PersistenceContext
+	private EntityManager entityManager;
+	
 	/**
 	 * Hibernate session factory
 	 */
@@ -74,10 +80,10 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	/**
 	 * Set session factory
 	 *
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	/**
@@ -100,7 +106,7 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	 */
 	@Override
 	public GlobalProperty getGlobalPropertyObject(String propertyName) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = entityManager.unwrap(Session.class);
 
 		if (isDatabaseStringComparisonCaseSensitive()) {
 			CriteriaBuilder cb = session.getCriteriaBuilder();
@@ -239,9 +245,9 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		HibernateSessionFactoryBean sessionFactoryBean = (HibernateSessionFactoryBean) applicationContext
-		        .getBean("&sessionFactory");
-		metadata = sessionFactoryBean.getMetadata();
+		HibernateSessionFactoryBean entityManagerFactoryBean = ((HibernateSessionFactoryBean) applicationContext
+			.getBean("&entityManagerFactory"));
+		metadata = entityManagerFactoryBean.getMetadata();
 	}
 	
 	/**

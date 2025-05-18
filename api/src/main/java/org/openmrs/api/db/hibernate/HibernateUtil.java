@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
@@ -119,6 +120,11 @@ public class HibernateUtil {
 		return sessionFactory.getCurrentSession().doReturningWork(connection -> escapeSqlWildcards(oldString, connection));
 		
 	}
+
+	public static String escapeSqlWildcards(final String oldString, EntityManager em) {
+		return em.unwrap(Session.class).doReturningWork(connection -> escapeSqlWildcards(oldString, connection));
+
+	}
 	
 	/**
 	 * Escapes all sql wildcards in the given string, returns the same string if it doesn't contain
@@ -211,6 +217,16 @@ public class HibernateUtil {
 	 */
 	public static <T> T getUniqueEntityByUUID(SessionFactory sessionFactory, Class<T> entityClass, String uuid) throws DAOException {
 		Session session = sessionFactory.getCurrentSession();
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<T> query = cb.createQuery(entityClass);
+		Root<T> root = query.from(entityClass);
+
+		query.where(cb.equal(root.get("uuid"), uuid));
+		return session.createQuery(query).uniqueResult();
+	}
+
+	public static <T> T getUniqueEntityByUUID(EntityManager entityManager, Class<T> entityClass, String uuid) throws DAOException {
+		Session session = entityManager.unwrap(Session.class);
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<T> query = cb.createQuery(entityClass);
 		Root<T> root = query.from(entityClass);

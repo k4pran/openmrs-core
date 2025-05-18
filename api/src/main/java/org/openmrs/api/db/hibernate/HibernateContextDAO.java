@@ -9,6 +9,9 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
@@ -17,6 +20,10 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.search.FullTextSession;
+import org.hibernate.search.jpa.FullTextEntityManager;
+import org.hibernate.search.jpa.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.hibernate.search.mapper.orm.work.SearchIndexingPlan;
 import org.hibernate.stat.QueryStatistics;
 import org.hibernate.stat.Statistics;
 import org.hibernate.type.StandardBasicTypes;
@@ -27,14 +34,12 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ContextAuthenticationException;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.api.db.ContextDAO;
-import org.openmrs.api.db.FullTextSessionFactory;
 import org.openmrs.api.db.UserDAO;
 import org.openmrs.util.OpenmrsConstants;
 import org.openmrs.util.OpenmrsUtil;
 import org.openmrs.util.Security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,19 +74,19 @@ public class HibernateContextDAO implements ContextDAO {
 	 */
 	private SessionFactory sessionFactory;
 	
-	@Autowired
-	private FullTextSessionFactory fullTextSessionFactory;
+	@PersistenceContext
+	private EntityManager em;
 	
 	private UserDAO userDao;
 	
 	/**
-	 * Session factory to use for this DAO. This is usually injected by spring and its application
+	 * EntityManagerFactory to use for this DAO that unwraps to the hibernate SessionFactory. This is usually injected by spring and its application
 	 * context.
 	 * 
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	public void setUserDAO(UserDAO userDao) {
@@ -96,7 +101,7 @@ public class HibernateContextDAO implements ContextDAO {
 	public User authenticate(String login, String password) throws ContextAuthenticationException {
 		String errorMsg = "Invalid username and/or password: " + login;
 
-		Session session = sessionFactory.getCurrentSession();
+		Session session = em.unwrap(Session.class);
 
 		User candidateUser = null;
 
@@ -254,13 +259,13 @@ public class HibernateContextDAO implements ContextDAO {
 	public User getUserByUuid(String uuid) {
 		
 		// don't flush here in case we're in the AuditableInterceptor.  Will cause a StackOverflowEx otherwise
-		FlushMode flushMode = sessionFactory.getCurrentSession().getHibernateFlushMode();
-		sessionFactory.getCurrentSession().setHibernateFlushMode(FlushMode.MANUAL);
+		FlushMode flushMode = em.unwrap(Session.class).getHibernateFlushMode();
+		em.unwrap(Session.class).setHibernateFlushMode(FlushMode.MANUAL);
 		
-		User u = HibernateUtil.getUniqueEntityByUUID(sessionFactory, User.class, uuid);
+		User u = HibernateUtil.getUniqueEntityByUUID(em, User.class, uuid);
 		
 		// reset the flush mode to whatever it was before
-		sessionFactory.getCurrentSession().setHibernateFlushMode(flushMode);
+		em.unwrap(Session.class).setHibernateFlushMode(flushMode);
 		
 		return u;
 	}
@@ -290,7 +295,7 @@ public class HibernateContextDAO implements ContextDAO {
 	 * @param user the User to save
 	 */
 	private void saveUserProperties(User user) {
-		sessionFactory.getCurrentSession().update(user);
+		em.unwrap(Session.class).update(user);
 	}
 	
 	/**
@@ -338,7 +343,7 @@ public class HibernateContextDAO implements ContextDAO {
 		log.debug("HibernateContext: closing Hibernate Session");
 		if (!participate) {
 			log.debug("Unbinding session from synchronization manager (" + sessionFactory.hashCode() + ")");
-			
+
 			if (TransactionSynchronizationManager.hasResource(sessionFactory)) {
 				Object value = TransactionSynchronizationManager.unbindResource(sessionFactory);
 				try {
@@ -362,7 +367,7 @@ public class HibernateContextDAO implements ContextDAO {
 	@Override
 	@Transactional
 	public void clearSession() {
-		sessionFactory.getCurrentSession().clear();
+		em.unwrap(Session.class).clear();
 	}
 	
 	/**
@@ -370,7 +375,7 @@ public class HibernateContextDAO implements ContextDAO {
 	 */
 	@Override
 	public void evictFromSession(Object obj) {
-		sessionFactory.getCurrentSession().evict(obj);
+		em.unwrap(Session.class).evict(obj);
 	}
 
 	/**
@@ -404,7 +409,7 @@ public class HibernateContextDAO implements ContextDAO {
 	 */
 	@Override
 	public void refreshEntity(Object obj) {
-		sessionFactory.getCurrentSession().refresh(obj);
+		em.unwrap(Session.class).refresh(obj);
 	}
 
 	/**
@@ -413,7 +418,7 @@ public class HibernateContextDAO implements ContextDAO {
 	@Override
 	@Transactional
 	public void flushSession() {
-		sessionFactory.getCurrentSession().flush();
+		em.unwrap(Session.class).flush();
 	}
 	
 	/**
@@ -513,30 +518,34 @@ public class HibernateContextDAO implements ContextDAO {
 	@Override
 	@Transactional
 	public void updateSearchIndexForType(Class<?> type) {
-		//From http://docs.jboss.org/hibernate/search/3.3/reference/en-US/html/manual-index-changes.html#search-batchindex-flushtoindexes
-		FullTextSession session = fullTextSessionFactory.getFullTextSession();
-		session.purgeAll(type);
-		
+		Session session = em.unwrap(Session.class);
+		SearchSession searchSession = org.hibernate.search.mapper.orm.Search.session(session);
+		SearchIndexingPlan indexingPlan = searchSession.indexingPlan();
+
 		//Prepare session for batch work
 		session.flush();
+		indexingPlan.execute();
 		session.clear();
-		
+
+		//Purge all search indexes of the given type
+		org.hibernate.search.mapper.orm.Search.mapping(sessionFactory).scope(type).workspace().purge();
+
 		FlushMode flushMode = session.getHibernateFlushMode();
 		CacheMode cacheMode = session.getCacheMode();
 		try {
 			session.setHibernateFlushMode(FlushMode.MANUAL);
 			session.setCacheMode(CacheMode.IGNORE);
-			
+
 			//Scrollable results will avoid loading too many objects in memory
 			try (ScrollableResults results = HibernateUtil.getScrollableResult(sessionFactory, type, 1000)) {
 				int index = 0;
 				while (results.next()) {
 					index++;
 					//index each element
-					session.index(results.get(0));
+					indexingPlan.addOrUpdate(results.get(0));
 					if (index % 1000 == 0) {
-						//apply changes to indexes
-						session.flushToIndexes();
+						//apply changes to search indexes
+						indexingPlan.execute();
 						//free memory since the queue is processed
 						session.clear();
 						// reset index to avoid overflows
@@ -544,7 +553,7 @@ public class HibernateContextDAO implements ContextDAO {
 					}
 				}
 			} finally {
-				session.flushToIndexes();
+//				indexingPlan.execute(); TODO uncommenting this causes no transaction exception
 				session.clear();
 			}
 		}
@@ -560,9 +569,9 @@ public class HibernateContextDAO implements ContextDAO {
 	@Override
 	@Transactional
 	public void updateSearchIndexForObject(Object object) {
-		FullTextSession session = fullTextSessionFactory.getFullTextSession();
-		session.index(object);
-		session.flushToIndexes();
+		FullTextEntityManager fullTextEm = Search.getFullTextEntityManager(em);
+		fullTextEm.index(object);
+		fullTextEm.flushToIndexes();
 	}
 	
 	/**
@@ -584,7 +593,7 @@ public class HibernateContextDAO implements ContextDAO {
 	public void updateSearchIndex() {
 		try {
 			log.info("Updating the search index... It may take a few minutes.");
-			fullTextSessionFactory.getFullTextSession().createIndexer().startAndWait();
+			Search.getFullTextEntityManager(em).createIndexer().startAndWait();
 			GlobalProperty gp = Context.getAdministrationService().getGlobalPropertyObject(
 			    OpenmrsConstants.GP_SEARCH_INDEX_VERSION);
 			if (gp == null) {
@@ -606,7 +615,8 @@ public class HibernateContextDAO implements ContextDAO {
 	public Future<?> updateSearchIndexAsync() {
 		try {
 			log.info("Started asynchronously updating the search index...");
-			return fullTextSessionFactory.getFullTextSession().createIndexer().start();
+			FullTextEntityManager fullTextEm = Search.getFullTextEntityManager(em);
+			return fullTextEm.createIndexer().start();
 		}
 		catch (Exception e) {
 			throw new RuntimeException("Failed to start asynchronous search index update", e);

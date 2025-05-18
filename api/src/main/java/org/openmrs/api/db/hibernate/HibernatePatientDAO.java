@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
@@ -66,12 +69,16 @@ public class HibernatePatientDAO implements PatientDAO {
 	 * Hibernate session factory
 	 */
 	private SessionFactory sessionFactory;
-	
+
 	/**
 	 * Set session factory
 	 *
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+	}
+
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}

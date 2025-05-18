@@ -23,7 +23,10 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.db.hibernate.search.LuceneAnalyzers;
 import org.openmrs.api.db.hibernate.search.bridge.LocaleFieldBridge;
@@ -42,6 +45,9 @@ public class ConceptName extends BaseOpenmrsObject implements Auditable, Voidabl
 	private Integer conceptNameId;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@AssociationInverseSide(
+		inversePath = @ObjectPath(@PropertyValue(propertyName = "names"))
+	)
 	private Concept concept;
 	
 	@Field(analyzer = @Analyzer(definition = LuceneAnalyzers.CONCEPT_NAME_ANALYZER))

@@ -32,7 +32,7 @@ public class HibernateAdministrationDAOTest extends BaseContextSensitiveTest {
 	
 	@BeforeEach
 	public void getSessionFactory() {
-		sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 	}
 	
 	/**

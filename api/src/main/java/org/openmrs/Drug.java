@@ -21,6 +21,11 @@ import org.hibernate.envers.NotAudited;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.api.context.Context;
 
 /**
@@ -49,9 +54,13 @@ public class Drug extends BaseChangeableOpenmrsMetadata {
 	private Concept doseLimitUnits;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private Concept concept;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@AssociationInverseSide(
+		inversePath = @ObjectPath(@PropertyValue(propertyName = "drug"))
+	)
 	private Set<DrugReferenceMap> drugReferenceMaps;
 	
 	private Collection<DrugIngredient> ingredients;

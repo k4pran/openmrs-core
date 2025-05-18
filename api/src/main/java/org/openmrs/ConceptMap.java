@@ -12,6 +12,8 @@ package org.openmrs;
 import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 
 /**
  * The concept map object represents a mapping of Concept to ConceptSource. A concept can have 0 to
@@ -29,6 +31,7 @@ public class ConceptMap extends BaseConceptMap {
 	private Concept concept;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private ConceptReferenceTerm conceptReferenceTerm;
 	
 	// Constructors

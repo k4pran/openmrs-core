@@ -576,7 +576,7 @@ public abstract class BaseContextSensitiveTest extends AbstractJUnit4SpringConte
 	 * @return Connection jdbc connection to the database
 	 */
 	public Connection getConnection() {
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		
 		return sessionFactory.getCurrentSession().doReturningWork(connection -> connection);
 	}
@@ -903,7 +903,7 @@ public abstract class BaseContextSensitiveTest extends AbstractJUnit4SpringConte
 	 */
 	@Before
 	public void clearHibernateCache() {
-		SessionFactory sf = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sf = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		sf.getCache().evictCollectionRegions();
 		sf.getCache().evictEntityRegions();
 	}

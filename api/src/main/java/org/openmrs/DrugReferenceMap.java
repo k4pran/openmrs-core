@@ -27,6 +27,8 @@ import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 
 /**
  * The DrugReferenceMap map object represents a mapping between a drug and alternative drug
@@ -60,6 +62,7 @@ public class DrugReferenceMap extends BaseOpenmrsObject implements Auditable, Se
 	@JoinColumn(name = "term_id", nullable = false)
 	@Cascade(CascadeType.SAVE_UPDATE)
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private ConceptReferenceTerm conceptReferenceTerm;
 
 	@ManyToOne

@@ -19,7 +19,6 @@ import org.apache.lucene.analysis.ngram.EdgeNGramFilterFactory;
 import org.apache.lucene.analysis.ngram.NGramFilterFactory;
 import org.apache.lucene.analysis.phonetic.PhoneticFilterFactory;
 import org.apache.lucene.analysis.standard.ClassicFilterFactory;
-import org.apache.lucene.analysis.standard.StandardFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurationContext;
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer;
@@ -79,7 +78,6 @@ public class LuceneAnalyzerFactory implements LuceneAnalysisConfigurer {
 
 		context.analyzer(CONCEPT_NAME_ANALYZER).custom()
 			.tokenizer(StandardTokenizerFactory.class)
-			.tokenFilter(StandardFilterFactory.class)
 			.tokenFilter(LowerCaseFilterFactory.class)
 			.tokenFilter(ASCIIFoldingFilterFactory.class);
 	}

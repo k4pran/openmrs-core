@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 
 import javax.annotation.PostConstruct;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
@@ -42,11 +43,15 @@ public class ObsPostLoadEventListener implements PostLoadEventListener {
 	private static final Logger log = LoggerFactory.getLogger(ObsPostLoadEventListener.class);
 	
 	@Autowired
+	private EntityManagerFactory entityManagerFactory;
+		
 	private SessionFactory sessionFactory;
-	
+
 	@PostConstruct
 	public void registerListener() {
-		EventListenerRegistry registry = ((SessionFactoryImpl) sessionFactory).getServiceRegistry().getService(
+		sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+		EventListenerRegistry registry = sessionFactory.getSessionFactory()
+			.getServiceRegistry().getService(
 		    EventListenerRegistry.class);
 		registry.getEventListenerGroup(EventType.POST_LOAD).appendListener(this);
 	}

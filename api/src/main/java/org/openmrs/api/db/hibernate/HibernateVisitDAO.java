@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -43,9 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class HibernateVisitDAO implements VisitDAO {
 	
 	private SessionFactory sessionFactory;
-	
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	private Session getCurrentSession() {

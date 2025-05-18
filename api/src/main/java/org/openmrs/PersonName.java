@@ -26,6 +26,9 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.hibernate.search.LuceneAnalyzers;
 import org.openmrs.layout.name.NameSupport;
@@ -72,6 +75,9 @@ public class PersonName extends BaseChangeableOpenmrsData implements java.io.Ser
 	private Integer personNameId;
 
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@AssociationInverseSide(
+		inversePath = @ObjectPath(@PropertyValue(propertyName = "names"))
+	)
 	private Person person;
 
 	private Boolean preferred = false;

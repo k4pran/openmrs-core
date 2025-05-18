@@ -109,6 +109,7 @@
 		<dependency>
 			<groupId>org.ehcache</groupId>
 			<artifactId>ehcache</artifactId>
+			<classifier>jakarta</classifier>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
@@ -165,6 +166,10 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-envers-jakarta</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>c3p0</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
@@ -283,7 +288,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.sun.activation</groupId>
-			<artifactId>javax.activation</artifactId>
+			<artifactId>jakarta.activation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

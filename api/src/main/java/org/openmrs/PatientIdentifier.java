@@ -16,13 +16,10 @@ import java.util.Comparator;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.DocumentId;
+import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.SortableField;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.openmrs.api.db.hibernate.search.LuceneAnalyzers;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
@@ -57,18 +54,20 @@ public class PatientIdentifier extends BaseChangeableOpenmrsData implements java
 	private Integer patientIdentifierId;
 
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private Patient patient;
 
 	@Fields({
 			@Field(name = IDENTIFIER_PHRASE, analyzer = @Analyzer(definition = LuceneAnalyzers.PHRASE_ANALYZER)),
-			@Field(name = IDENTIFIER_PHRASE_EXACT, analyzer = @Analyzer(definition = LuceneAnalyzers.EXACT_ANALYZER)),
+			@Field(name = IDENTIFIER_PHRASE_EXACT, analyze = Analyze.NO),
 			@Field(name = IDENTIFIER_PHRASE_START, analyzer = @Analyzer(definition = LuceneAnalyzers.START_ANALYZER)),
 			@Field(name = IDENTIFIER_PHRASE_ANYWHERE, analyzer = @Analyzer(definition = LuceneAnalyzers.ANYWHERE_ANALYZER))
 	})
-	@SortableField(forField = "identifierExact")
+	@SortableField(forField = IDENTIFIER_PHRASE_EXACT)
 	private String identifier;
 
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private PatientIdentifierType identifierType;
 	
 	private Location location;

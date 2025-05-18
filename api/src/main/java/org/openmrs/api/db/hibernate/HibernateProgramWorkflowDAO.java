@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -60,10 +61,10 @@ public class HibernateProgramWorkflowDAO implements ProgramWorkflowDAO {
 	/**
 	 * Hibernate Session Factory
 	 *
-	 * @param sessionFactory
+	 * @param entityManagerFactory
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 	}
 	
 	// **************************

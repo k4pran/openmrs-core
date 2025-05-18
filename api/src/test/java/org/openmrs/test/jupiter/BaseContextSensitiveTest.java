@@ -34,6 +34,9 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +56,7 @@ import org.dbunit.dataset.xml.FlatXmlProducer;
 import org.dbunit.dataset.xml.XmlDataSet;
 import org.dbunit.ext.h2.H2DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.H2Dialect;
@@ -120,6 +124,12 @@ import org.xml.sax.InputSource;
 public abstract class BaseContextSensitiveTest {
 	
 	private static final Logger log = LoggerFactory.getLogger(BaseContextSensitiveTest.class);
+
+	@Autowired
+	private EntityManagerFactory entityManagerFactory;
+
+	@PersistenceContext
+	protected EntityManager em;
 	
 	/**
 	 * Only the classpath/package path and filename of the initial dataset
@@ -565,9 +575,9 @@ public abstract class BaseContextSensitiveTest {
 	 * @return Connection jdbc connection to the database
 	 */
 	public Connection getConnection() {
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+//		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("entityManagerFactory");
 		
-		return sessionFactory.getCurrentSession().doReturningWork(connection -> connection);
+		return em.unwrap(Session.class).doReturningWork(connection -> connection);
 	}
 	
 	/**
@@ -912,7 +922,7 @@ public abstract class BaseContextSensitiveTest {
 	 */
 	@BeforeEach
 	public void clearHibernateCache() {
-		SessionFactory sf = (SessionFactory) applicationContext.getBean("sessionFactory");
+		SessionFactory sf = entityManagerFactory.unwrap(org.hibernate.SessionFactory.class);
 		sf.getCache().evictCollectionRegions();
 		sf.getCache().evictEntityRegions();
 	}

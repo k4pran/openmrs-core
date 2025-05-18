@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.openmrs.MedicationDispense;
 import org.openmrs.api.db.MedicationDispenseDAO;
@@ -29,11 +30,11 @@ import java.util.List;
 public class HibernateMedicationDispenseDAO implements MedicationDispenseDAO {
 	
 	private SessionFactory sessionFactory;
-	
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
 
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+	}
+	
 	@Override
 	public MedicationDispense getMedicationDispense(Integer medicationDispenseId) {
 		return sessionFactory.getCurrentSession().get(MedicationDispense.class, medicationDispenseId);

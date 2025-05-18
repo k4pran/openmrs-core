@@ -11,14 +11,14 @@ package org.openmrs;
 
 import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.Field;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 
 /**
  * In OpenMRS, we distinguish between data and metadata within our data model. Data (as opposed to
@@ -46,9 +46,9 @@ public abstract class BaseOpenmrsData extends BaseOpenmrsObject implements Openm
 	
 	@Column(name = "date_changed")
 	private Date dateChanged;
-	
+
 	@Column(name = "voided", nullable = false)
-	@Field
+//	@Field TODO
 	private Boolean voided = Boolean.FALSE;
 	
 	@Column(name = "date_voided")

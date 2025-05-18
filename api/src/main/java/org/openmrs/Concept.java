@@ -30,6 +30,11 @@ import org.hibernate.envers.Audited;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.openmrs.annotation.AllowDirectAccess;
 import org.openmrs.api.APIException;
 import org.openmrs.api.ConceptNameType;
@@ -87,9 +92,11 @@ public class Concept extends BaseOpenmrsObject implements Auditable, Retireable,
 	private String retireReason;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private ConceptDatatype datatype;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
 	private ConceptClass conceptClass;
 	
 	private Boolean set = false;
@@ -115,6 +122,9 @@ public class Concept extends BaseOpenmrsObject implements Auditable, Retireable,
 	private Collection<ConceptDescription> descriptions;
 	
 	@IndexedEmbedded(includeEmbeddedObjectId = true)
+	@AssociationInverseSide(
+		inversePath = @ObjectPath(@PropertyValue(propertyName = "concept"))
+	)
 	private Collection<ConceptMap> conceptMappings;
 	
 	/**
