@@ -9,15 +9,15 @@
  */
 package org.openmrs.api.db.hibernate;
 
-import javax.persistence.CacheRetrieveMode;
-import javax.persistence.CacheStoreMode;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -362,8 +362,8 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		);
 
 		TypedQuery<Encounter> query = session.createQuery(cq);
-		query.setHint("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
-		query.setHint("javax.persistence.cache.storeMode", CacheStoreMode.BYPASS);
+		query.setHint("jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
+		query.setHint("jakarta.persistence.cache.storeMode", CacheStoreMode.BYPASS);
 
 		Map<Integer, List<Encounter>> encountersBypatient = new HashMap<>();
 		List<Encounter> allEncounters = query.getResultList();

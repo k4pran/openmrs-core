@@ -112,8 +112,14 @@ import org.xml.sax.InputSource;
  */
 @ContextConfiguration(locations = { "classpath:applicationContext-service.xml", "classpath*:openmrs-servlet.xml",
         "classpath*:moduleApplicationContext.xml", "classpath*:TestingApplicationContext.xml" })
-@TestExecutionListeners( { TransactionalTestExecutionListener.class, SkipBaseSetupAnnotationExecutionListener.class,
-        StartModuleExecutionListener.class })
+@TestExecutionListeners(
+	listeners = {
+		TransactionalTestExecutionListener.class,
+		SkipBaseSetupAnnotationExecutionListener.class,
+		StartModuleExecutionListener.class
+	},
+	mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
+)
 @Transactional
 @Rollback
 @Deprecated

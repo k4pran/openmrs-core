@@ -263,6 +263,10 @@
 
 	        </param-value>
 	    </init-param>
+		<multipart-config>
+			<max-file-size>75000000</max-file-size>
+			<max-request-size>75000000</max-request-size>
+		</multipart-config>
 		<!-- Don't use "load-on-startup" in case initial setup wizard is needed -->
 	</servlet>
 
