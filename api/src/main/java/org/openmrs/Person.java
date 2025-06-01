@@ -102,9 +102,9 @@ public class Person extends BaseChangeableOpenmrsData {
 	
 	private String personVoidReason;
 	
-	@GenericField
+//	@GenericField
 	@NotAudited
-	@IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "patient")))
+//	@IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "patient")))
 	private boolean isPatient;
 	
 	/**

@@ -100,7 +100,7 @@
 			<one-to-many class="PersonAttribute" />
 		</set>
 		
-	    <property name="patient" type="boolean" insert="false" update="false" lazy="false">
+	    <property name="patient" type="boolean" insert="false" update="false" lazy="true">
 	    	<formula>case when exists (select * from patient p where p.patient_id = person_id) then 1 else 0 end</formula> 
 	    </property>
 	    		

@@ -624,7 +624,7 @@ public class HibernatePatientDAO implements PatientDAO {
 	public Patient getPatientByUuid(String uuid) {
 		Patient p;
 		
-		p = sessionFactory.getCurrentSession().createNativeQuery("from Patient p where p.uuid = :uuid",
+		p = sessionFactory.getCurrentSession().createQuery("from Patient p where p.uuid = :uuid",
 				Patient.class)
 			.setParameter(
 		    "uuid", uuid).uniqueResult();
@@ -645,7 +645,7 @@ public class HibernatePatientDAO implements PatientDAO {
 	 */
         @Override
 	public PatientIdentifierType getPatientIdentifierTypeByUuid(String uuid) {
-		return sessionFactory.getCurrentSession().createNativeQuery(
+		return sessionFactory.getCurrentSession().createQuery(
 		    "from PatientIdentifierType pit where pit.uuid = :uuid", PatientIdentifierType.class)
 			.setParameter("uuid", uuid)
 			.uniqueResult();
@@ -940,7 +940,7 @@ public class HibernatePatientDAO implements PatientDAO {
 	}
 
     /**
-	 * @see org.openmrs..api.db.PatientDAO#getAllergies(org.openmrs.Patient)
+	 * @see org.openmrs.api.db.PatientDAO#getAllergies(org.openmrs.Patient)
 	 */
 	//@Override
         @Override
