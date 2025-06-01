@@ -21,6 +21,8 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
+import static org.hibernate.id.IdentifierGenerator.ENTITY_NAME;
+
 /**
  * <b>native-if-not-assigned</b><br>
  * <br>
@@ -37,17 +39,17 @@ public class NativeIfNotAssignedIdentityGenerator extends IdentityGenerator impl
 	
 	private String entityName;
 	
-	@Override
-	public Serializable generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
-		Serializable id;
-		EntityPersister persister = session.getEntityPersister(entityName, entity);
-		// Determine if an ID has been assigned.
-		id = persister.getIdentifier(entity, session);
-		if (id == null) {
-			id = super.generate(session, entity);
-		}
-		return id;
-	}
+//	@Override
+//	public Serializable generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
+//		Serializable id;
+//		EntityPersister persister = session.getEntityPersister(entityName, entity);
+//		// Determine if an ID has been assigned.
+//		id = persister.getIdentifier(entity, session);
+//		if (id == null) {
+//			id = super.generate(session, entity);
+//		}
+//		return id;
+//	}
 
 	@Override
 	public void configure(Type type, Properties params, ServiceRegistry serviceRegistry) throws MappingException {

@@ -486,7 +486,7 @@ public class HibernateProgramWorkflowDAO implements ProgramWorkflowDAO {
 			return patientProgramAttributes;
 		}
 		String commaSeperatedPatientIds = StringUtils.join(patientIds, ",");
-		List<Object> list = sessionFactory.getCurrentSession().createSQLQuery(
+		List<Object> list = sessionFactory.getCurrentSession().createNativeQuery(
 				"SELECT p.patient_id as person_id, " +
 						" concat('{',group_concat(DISTINCT (coalesce(concat('\"',ppt.name,'\":\"', COALESCE (cn.name, ppa.value_reference),'\"'))) SEPARATOR ','),'}') AS patientProgramAttributeValue  " +
 						" from patient p " +
@@ -494,7 +494,7 @@ public class HibernateProgramWorkflowDAO implements ProgramWorkflowDAO {
 						" join patient_program_attribute ppa on pp.patient_program_id = ppa.patient_program_id and ppa.voided=0" +
 						" join program_attribute_type ppt on ppa.attribute_type_id = ppt.program_attribute_type_id and ppt.name ='" + attributeName + "' "+
 						" LEFT OUTER JOIN concept_name cn on ppa.value_reference = cn.concept_id and cn.concept_name_type= 'FULLY_SPECIFIED' and cn.voided=0 and ppt.datatype like '%ConceptDataType%'" +
-						" group by p.patient_id")
+						" group by p.patient_id", Object.class)
 				.addScalar("person_id", StandardBasicTypes.INTEGER)
 				.addScalar("patientProgramAttributeValue", StandardBasicTypes.STRING)
 				.list();

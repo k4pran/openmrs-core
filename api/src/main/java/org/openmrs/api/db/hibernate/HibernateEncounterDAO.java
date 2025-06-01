@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.FlushMode;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.openmrs.Cohort;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
@@ -267,10 +267,11 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		FlushMode flushMode = session.getHibernateFlushMode();
 		session.setHibernateFlushMode(FlushMode.MANUAL);
 		try {
-			SQLQuery sql = session
-			        .createSQLQuery("select encounter_datetime from encounter where encounter_id = :encounterId");
-			sql.setInteger("encounterId", encounter.getEncounterId());
-			return (Date) sql.uniqueResult();
+			NativeQuery<Date> sql = session
+				.createNativeQuery(
+					"select encounter_datetime from encounter where encounter_id = :encounterId", Date.class);
+			sql.setParameter("encounterId", encounter.getEncounterId());
+			return sql.uniqueResult();
 		}
 		finally {
 			session.setHibernateFlushMode(flushMode);
@@ -334,9 +335,10 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		FlushMode flushMode = session.getHibernateFlushMode();
 		session.setHibernateFlushMode(FlushMode.MANUAL);
 		try {
-			SQLQuery sql = session.createSQLQuery("select location_id from encounter where encounter_id = :encounterId");
-			sql.setInteger("encounterId", encounter.getEncounterId());
-			return Context.getLocationService().getLocation((Integer) sql.uniqueResult());
+			NativeQuery<Integer> sql = session.createNativeQuery("select location_id from encounter where encounter_id = :encounterId",
+				Integer.class);
+			sql.setParameter("encounterId", encounter.getEncounterId());
+			return Context.getLocationService().getLocation(sql.uniqueResult());
 		}
 		finally {
 			session.setHibernateFlushMode(flushMode);

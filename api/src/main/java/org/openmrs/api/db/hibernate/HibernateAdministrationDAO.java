@@ -25,16 +25,17 @@ import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jdbc.Work;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.type.StringType;
-import org.hibernate.type.TextType;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.type.Type;
 import org.openmrs.GlobalProperty;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.Patient;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.AdministrationDAO;
 import org.openmrs.api.db.DAOException;
@@ -220,12 +221,12 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	}
 	
 	@Override
-	public int getMaximumPropertyLength(Class<? extends OpenmrsObject> aClass, String fieldName) {
+	public long getMaximumPropertyLength(Class<? extends OpenmrsObject> aClass, String fieldName) {
 		PersistentClass persistentClass = metadata.getEntityBinding(aClass.getName().split("_")[0]);
 		if (persistentClass == null) {
 			throw new APIException("Couldn't find a class in the hibernate configuration named: " + aClass.getName());
 		} else {
-			int fieldLength;
+			long fieldLength;
 			try {
 				fieldLength = ((Column) persistentClass.getProperty(fieldName).getColumnIterator().next()).getLength();
 			}
@@ -258,17 +259,26 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 		Class entityClass = object.getClass();
 		ClassMetadata metadata = null;
 		try {
-			metadata = sessionFactory.getClassMetadata(entityClass);
+			SessionFactoryImplementor sfi =
+				sessionFactory.unwrap(SessionFactoryImplementor.class);
+			
+			metadata =
+				(AbstractEntityPersister)
+					sfi.getRuntimeMetamodels()
+						.getMappingMetamodel()
+						.getEntityDescriptor(Patient.class);
+			
 		}
 		catch (MappingException ex) {
 			log.debug(entityClass + " is not a hibernate mapped entity", ex);
 		}
 		if (metadata != null) {
 			String[] propNames = metadata.getPropertyNames();
-			Object identifierType = metadata.getIdentifierType();
+			Type identifierType = metadata.getIdentifierType();
 			String identifierName = metadata.getIdentifierPropertyName();
-			if (identifierType instanceof StringType || identifierType instanceof TextType) {
-				int maxLength = getMaximumPropertyLength(entityClass, identifierName);
+			
+			if (identifierType.getReturnedClass().isInstance(String.class)) {
+				long maxLength = getMaximumPropertyLength(entityClass, identifierName);
 				String identifierValue = (String) metadata.getIdentifier(object,
 				    (SessionImplementor) sessionFactory.getCurrentSession());
 				if (identifierValue != null) {
@@ -282,10 +292,10 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 			}
 			for (String propName : propNames) {
 				Type propType = metadata.getPropertyType(propName);
-				if (propType instanceof StringType || propType instanceof TextType) {
+				if (propType.getReturnedClass().isInstance(String.class)) {
 					String propertyValue = (String) metadata.getPropertyValue(object, propName);
 					if (propertyValue != null) {
-						int maxLength = getMaximumPropertyLength(entityClass, propName);
+						long maxLength = getMaximumPropertyLength(entityClass, propName);
 						int propertyValueLength = propertyValue.length();
 						if (propertyValueLength > maxLength) {
 							errors.rejectValue(propName, "error.exceededMaxLengthOfField", new Object[] { maxLength },
@@ -332,7 +342,7 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	
 	@Override
 	public boolean isDatabaseStringComparisonCaseSensitive() {
-		GlobalProperty gp = (GlobalProperty) sessionFactory.getCurrentSession().get(GlobalProperty.class,
+		GlobalProperty gp = sessionFactory.getCurrentSession().get(GlobalProperty.class,
 		    OpenmrsConstants.GP_CASE_SENSITIVE_DATABASE_STRING_COMPARISON);
 		if (gp != null) {
 			return Boolean.valueOf(gp.getPropertyValue());

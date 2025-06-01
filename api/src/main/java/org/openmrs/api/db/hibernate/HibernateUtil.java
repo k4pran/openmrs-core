@@ -30,7 +30,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.HSQLDialect;
-import org.hibernate.dialect.PostgreSQL82Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.proxy.HibernateProxy;
 import org.openmrs.Location;
@@ -84,7 +84,7 @@ public class HibernateUtil {
 		
 		if (isPostgreSQLDialect == null) {
 			// check and cache the dialect
-			isPostgreSQLDialect = PostgreSQL82Dialect.class.getName()
+			isPostgreSQLDialect = PostgreSQLDialect.class.getName()
 			        .equals(getDialect(sessionFactory).getClass().getName());
 		}
 		
@@ -105,7 +105,7 @@ public class HibernateUtil {
 		}
 		
 		SessionFactoryImplementor implementor = (SessionFactoryImplementor) sessionFactory;
-		dialect = implementor.getDialect();
+		dialect = implementor.getJdbcServices().getDialect();
 		
 		log.debug("Getting dialect for session: {}", dialect);
 		

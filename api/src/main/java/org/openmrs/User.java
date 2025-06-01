@@ -9,21 +9,8 @@
  */
 package org.openmrs;
 
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,7 +71,7 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@Column(name = "user_id")
 	private Integer userId;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "person_id", nullable = false)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@Cascade(CascadeType.SAVE_UPDATE)
@@ -103,14 +90,14 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role"))
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.EVICT })
+	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.DETACH })
 	private Set<Role> roles;
 
 	@ElementCollection
 	@CollectionTable(name = "user_property", joinColumns = @JoinColumn(name = "user_id", nullable = false))
 	@MapKeyColumn(name = "property", length = 255)
 	@Column(name = "property_value", length = Integer.MAX_VALUE)
-	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.EVICT })
+	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.DETACH })
 	@NotAudited
 	private Map<String, String> userProperties;
 
@@ -120,14 +107,14 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@Transient
 	private String parsedProficientLocalesProperty = "";
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "creator", nullable = false)
 	private User creator;
 
 	@Column(name = "date_created", nullable = false, length = 19)
 	private Date dateCreated;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "changed_by")
 	private User changedBy;
 
@@ -137,7 +124,7 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@Column(name = "retired", nullable = false, length = 1)
 	private boolean retired;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "retired_by")
 	private User retiredBy;
 
