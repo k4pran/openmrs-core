@@ -13,6 +13,7 @@ import java.util.Date;
 
 import org.openmrs.OpenmrsMetadata;
 import org.openmrs.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Is called when any {@link OpenmrsMetadata} object is being saved. Trims out the leading and
@@ -27,6 +28,7 @@ public class OpenmrsMetadataSaveHandler implements SaveHandler<OpenmrsMetadata> 
 	 * <strong>Should</strong> trim whitespace from description
 	 */
 	@Override
+	@Transactional
 	public void handle(OpenmrsMetadata object, User creator, Date dateCreated, String other) {
 		if (object.getName() != null) {
 			object.setName(object.getName().trim());

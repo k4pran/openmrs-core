@@ -26,6 +26,7 @@ import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.APIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with any object that implements {@link OpenmrsObject}. When an
@@ -56,6 +57,7 @@ public class OpenmrsObjectSaveHandler implements SaveHandler<OpenmrsObject> {
 	 * <strong>Should</strong> trim empty strings for AllowEmptyStrings annotation
 	 */
 	@Override
+	@Transactional
 	public void handle(OpenmrsObject openmrsObject, User creator, Date dateCreated, String reason) {
 		if (openmrsObject.getUuid() == null) {
 			openmrsObject.setUuid(UUID.randomUUID().toString());

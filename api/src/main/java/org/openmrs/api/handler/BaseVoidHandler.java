@@ -15,6 +15,7 @@ import org.openmrs.User;
 import org.openmrs.Voidable;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is the super interface for all void* actions that take place on all services. The
@@ -53,6 +54,7 @@ public class BaseVoidHandler implements VoidHandler<Voidable> {
 	 * <strong>Should</strong> set voidedBy even if voided bit is set but voidedBy is null
 	 */
 	@Override
+	@Transactional
 	public void handle(Voidable voidableObject, User voidingUser, Date voidedDate, String voidReason) {
 		
 		// skip over all work if the object is already voided

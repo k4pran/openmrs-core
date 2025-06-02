@@ -17,6 +17,7 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.context.Context;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link Patient} objects when they are saved via a save* method in an
@@ -36,6 +37,7 @@ public class PatientSaveHandler implements SaveHandler<Patient> {
 	 *      java.util.Date, java.lang.String)
 	 */
 	@Override
+	@Transactional
 	public void handle(Patient patient, User creator, Date dateCreated, String other) {
 		if (patient.getIdentifiers() != null) {
 			for (PatientIdentifier pIdentifier : patient.getIdentifiers()) {

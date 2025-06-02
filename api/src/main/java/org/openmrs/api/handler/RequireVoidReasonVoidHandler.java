@@ -21,6 +21,7 @@ import org.openmrs.User;
 import org.openmrs.Voidable;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class ensures that the voidReason is non-null for supported object types
@@ -42,6 +43,7 @@ public class RequireVoidReasonVoidHandler implements VoidHandler<Voidable> {
 	 * <strong>Should</strong> not throw Exception if voidReason is null for unsupported types
 	 */
 	@Override
+	@Transactional
 	public void handle(Voidable voidableObject, User voidingUser, Date voidedDate, String voidReason) {
 		
 		if (StringUtils.isBlank(voidReason)) {

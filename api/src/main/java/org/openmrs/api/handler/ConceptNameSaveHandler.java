@@ -20,6 +20,7 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.context.Context;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link ConceptName} objects when they are saved via a save* method in an
@@ -48,6 +49,7 @@ public class ConceptNameSaveHandler implements SaveHandler<ConceptName> {
 	 * <strong>Should</strong> not replace tags that have ids
 	 */
 	@Override
+	@Transactional
 	public void handle(ConceptName conceptName, User currentUser, Date currentDate, String reason) {
 		
 		// put Integer conceptNameTagIds onto ConceptNameTags that are missing them

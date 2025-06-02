@@ -634,7 +634,7 @@ public class HibernatePatientDAO implements PatientDAO {
 	
         @Override
 	public PatientIdentifier getPatientIdentifierByUuid(String uuid) {
-		return sessionFactory.getCurrentSession().createNativeQuery(
+		return sessionFactory.getCurrentSession().createQuery(
 		    "from PatientIdentifier p where p.uuid = :uuid", PatientIdentifier.class)
 			.setParameter("uuid", uuid)
 			.uniqueResult();
@@ -666,16 +666,16 @@ public class HibernatePatientDAO implements PatientDAO {
 		
 		// switched this to an hql query so the hibernate cache can be considered as well as the database
 		String hql = "select count(*) from PatientIdentifier pi, Patient p where pi.patient.patientId = p.patientId "
-		        + "and p.voided = false and pi.voided = false and pi.identifier = :identifier and pi.identifierType = :idType";
+		        + "and p.voided = false and pi.voided = false and pi.identifier = :identifier and pi.identifierType.patientIdentifierTypeId = :idType";
 		
 		if (checkPatient) {
 			hql += " and p.patientId != :ptId";
 		}
 		if (checkLocation) {
-			hql += " and pi.location = :locationId";
+			hql += " and pi.location.locationId = :locationId";
 		}
 		
-		NativeQuery<Integer> query = sessionFactory.getCurrentSession().createNativeQuery(hql, Integer.class);
+		Query<Long> query = sessionFactory.getCurrentSession().createQuery(hql, Long.class);
 		query.setParameter("identifier", patientIdentifier.getIdentifier());
 		query.setParameter("idType", patientIdentifier.getIdentifierType().getPatientIdentifierTypeId());
 		if (checkPatient) {
@@ -1008,7 +1008,7 @@ public class HibernatePatientDAO implements PatientDAO {
         @Override
 	public Allergy getAllergyByUuid(String uuid) {
 		return sessionFactory.getCurrentSession()
-			.createNativeQuery("from Allergy a where a.uuid = :uuid", Allergy.class)
+			.createQuery("from Allergy a where a.uuid = :uuid", Allergy.class)
 			.setParameter("uuid", uuid)
 			.uniqueResult();
 	}

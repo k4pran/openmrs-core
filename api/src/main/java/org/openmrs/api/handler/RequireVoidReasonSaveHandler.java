@@ -19,6 +19,7 @@ import org.openmrs.Voidable;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.APIException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This handler makes sure the when a voided object is saved, that the reason field is entered for
@@ -43,6 +44,7 @@ public class RequireVoidReasonSaveHandler implements SaveHandler<Voidable> {
 	 * <strong>Should</strong> not throw Exception if voidReason is null for unsupported types
 	 */
 	@Override
+	@Transactional
 	public void handle(Voidable voidableObject, User currentUser, Date currentDate, String notUsed) {
 		
 		if (voidableObject.getVoided() && StringUtils.isBlank(voidableObject.getVoidReason())) {

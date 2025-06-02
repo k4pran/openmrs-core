@@ -17,6 +17,7 @@ import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class sets the personVoid* attributes on the given {@link Person} object when a void* method
@@ -45,6 +46,7 @@ public class PersonVoidHandler implements VoidHandler<Person> {
 	 * <strong>Should</strong> retire users
 	 */
 	@Override
+	@Transactional
 	public void handle(Person person, User voidingUser, Date voidedDate, String voidReason) {
 		
 		// skip over all work if the object is already voided

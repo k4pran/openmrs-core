@@ -22,6 +22,7 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.APIException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,6 +42,7 @@ public class PersonSaveHandler implements SaveHandler<Person> {
 	 *      java.util.Date, java.lang.String)
 	 */
 	@Override
+	@Transactional
 	public void handle(Person person, User creator, Date dateCreated, String other) {
 		
 		// address collection

@@ -25,6 +25,7 @@ import org.openmrs.util.PrivilegeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
@@ -68,6 +69,7 @@ public class UserValidator implements Validator {
 	 * <strong>Should</strong> fail validation if field lengths are not correct
 	 */
 	@Override
+	@Transactional
 	public void validate(Object obj, Errors errors) {
 		User user = (User) obj;
 		if (user == null) {

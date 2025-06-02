@@ -139,7 +139,7 @@ public class HibernateHL7DAO implements HL7DAO {
 	@SuppressWarnings("unchecked")
 	public List<HL7InQueue> getAllHL7InQueues() throws DAOException {
 		return sessionFactory.getCurrentSession()
-		        .createQuery("from HL7InQueue where messageState = ?0 order by HL7InQueueId").setParameter(0,
+		        .createQuery("from HL7InQueue where messageState = ?1 order by HL7InQueueId").setParameter(1,
 		            HL7Constants.HL7_STATUS_PENDING, StandardBasicTypes.INTEGER).list();
 	}
 	
@@ -227,7 +227,7 @@ public class HibernateHL7DAO implements HL7DAO {
 	@Override
 	public HL7InQueue getNextHL7InQueue() throws DAOException {
 		Query query = sessionFactory.getCurrentSession().createQuery(
-		    "from HL7InQueue as hiq where hiq.messageState = ?0 order by HL7InQueueId").setParameter(0,
+		    "from HL7InQueue as hiq where hiq.messageState = ?1 order by HL7InQueueId").setParameter(1,
 		    HL7Constants.HL7_STATUS_PENDING, StandardBasicTypes.INTEGER).setMaxResults(1);
 		if (query == null) {
 			return null;
@@ -273,7 +273,7 @@ public class HibernateHL7DAO implements HL7DAO {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<HL7InArchive> getHL7InArchiveByState(Integer state, Integer maxResults) throws DAOException {
-		Query q = sessionFactory.getCurrentSession().createQuery("from HL7InArchive where messageState = ?0").setParameter(0,
+		Query q = sessionFactory.getCurrentSession().createQuery("from HL7InArchive where messageState = ?1").setParameter(1,
 		    state, StandardBasicTypes.INTEGER);
 		if (maxResults != null) {
 			q.setMaxResults(maxResults);
@@ -287,7 +287,7 @@ public class HibernateHL7DAO implements HL7DAO {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<HL7InQueue> getHL7InQueueByState(Integer state) throws DAOException {
-		return sessionFactory.getCurrentSession().createQuery("from HL7InQueue where messageState = ?0").setParameter(0,
+		return sessionFactory.getCurrentSession().createQuery("from HL7InQueue where messageState = ?1").setParameter(1,
 		    state, StandardBasicTypes.INTEGER).list();
 	}
 	
@@ -372,7 +372,7 @@ public class HibernateHL7DAO implements HL7DAO {
 	 */
 	@Override
 	public HL7InArchive getHL7InArchiveByUuid(String uuid) throws DAOException {
-		Query query = sessionFactory.getCurrentSession().createQuery("from HL7InArchive where uuid = ?0").setParameter(0,
+		Query query = sessionFactory.getCurrentSession().createQuery("from HL7InArchive where uuid = ?1").setParameter(1,
 		    uuid, StandardBasicTypes.STRING);
 		Object record = JpaUtils.getSingleResultOrNull(query);
 		if (record == null) {

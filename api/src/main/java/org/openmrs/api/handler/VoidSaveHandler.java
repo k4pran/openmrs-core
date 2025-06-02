@@ -15,6 +15,7 @@ import org.openmrs.User;
 import org.openmrs.Voidable;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This handler makes sure the when a voided object is saved with the voided bit set to true, the
@@ -59,6 +60,7 @@ public class VoidSaveHandler implements SaveHandler<Voidable> {
 	 * <strong>Should</strong> set voidedBy to null if voided is true
 	 */
 	@Override
+	@Transactional
 	public void handle(Voidable voidableObject, User currentUser, Date currentDate, String notUsed) {
 		
 		// void reason is not set here, it should be set prior to this method

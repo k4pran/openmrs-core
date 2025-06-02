@@ -1252,6 +1252,9 @@ public class HibernateConceptDAO implements ConceptDAO {
 	 */
 	@Override
 	public List<ConceptMap> getConceptMapsBySource(ConceptSource conceptSource) throws DAOException {
+		if (conceptSource == null) {
+			return Collections.emptyList();
+		}
 		Session session = sessionFactory.getCurrentSession();
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<ConceptMap> cq = cb.createQuery(ConceptMap.class);
@@ -2278,6 +2281,9 @@ public class HibernateConceptDAO implements ConceptDAO {
 	 */
 	@Override
 	public long getConceptAttributeCount(ConceptAttributeType conceptAttributeType) {
+		if (conceptAttributeType == null) {
+			return 0;
+		}
 		Session session = sessionFactory.getCurrentSession();
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<Long> cq = cb.createQuery(Long.class);

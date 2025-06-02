@@ -15,6 +15,7 @@ import org.openmrs.User;
 import org.openmrs.Voidable;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is the super interface for all unvoid* actions that take place on all services. The
@@ -48,6 +49,7 @@ public class BaseUnvoidHandler implements UnvoidHandler<Voidable> {
 	 * <strong>Should</strong> not act on objects with a different dateVoided
 	 */
 	@Override
+	@Transactional
 	public void handle(Voidable voidableObject, User voidingUser, Date origParentVoidedDate, String unused) {
 		
 		// only operate on voided objects
