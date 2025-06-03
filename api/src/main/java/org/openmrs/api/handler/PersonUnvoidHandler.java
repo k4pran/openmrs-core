@@ -15,7 +15,6 @@ import org.openmrs.Person;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class unsets the personVoid* attributes on the given {@link Person} object when an unvoid*
@@ -43,7 +42,6 @@ public class PersonUnvoidHandler implements UnvoidHandler<Person> {
 	 * <strong>Should</strong> not act on objects with a different personDateVoided
 	 */
 	@Override
-	@Transactional
 	public void handle(Person person, User unvoidingUser, Date origParentVoidedDate, String unused) {
 		
 		// only operate on voided objects

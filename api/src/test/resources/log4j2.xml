@@ -1,37 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
-
-    This Source Code Form is subject to the terms of the Mozilla Public License,
-    v. 2.0. If a copy of the MPL was not distributed with this file, You can
-    obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
-    the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
-
-    Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
-    graphic logo is a trademark of OpenMRS Inc.
-
--->
-
-<Configuration xmlns="http://logging.apache.org/log4j/2.0/config">
+<!-- log4j2.xml example -->
+<Configuration>
 	<Appenders>
-		<Console name="CONSOLE" target="SYSTEM_OUT">
-			<PatternLayout pattern="%p - %C{1}.%M(%L) |%d{ISO8601}| %m%n" />
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger – %msg%n"/>
 		</Console>
 	</Appenders>
-	<Loggers>
-		<!-- Hide unnecessary errors logged by Hibernate during unit testing -->
-		<Logger name="org.hibernate.tool.hbm2ddl.SchemaExport" level="OFF" />
 
-		<!-- 
-		This controls the LoggingAdvice class that wraps around the OpenMRS services 
-		WARN == don't log anything special for the services
-		INFO == log all setters
-		DEBUG == log all setters & getters &  execution time
-		-->
-		<Logger name="org.openmrs.api" level="OFF" />
-		<Logger name="org.openmrs.test" level="OFF" />
-		<Logger name="org.hibernate.SQL" level="OFF" />
+	<Loggers>
+		<!-- show the raw SQL -->
+		<Logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+			<AppenderRef ref="Console"/>
+		</Logger>
 		<Root level="OFF">
-			<AppenderRef ref="CONSOLE" />
+			<AppenderRef ref="Console"/>
 		</Root>
 	</Loggers>
 </Configuration>

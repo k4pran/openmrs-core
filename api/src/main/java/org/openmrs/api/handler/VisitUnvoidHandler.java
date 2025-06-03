@@ -18,7 +18,6 @@ import org.openmrs.Visit;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.context.Context;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class sets the void attributes on the given {@link Visit} object when an unvoid* method is
@@ -33,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class VisitUnvoidHandler implements UnvoidHandler<Visit> {
 	
 	@Override
-	@Transactional
 	public void handle(Visit visit, User voidingUser, Date origParentVoidedDate, String unused) {
 		List<Encounter> encountersByVisit = Context.getEncounterService().getEncountersByVisit(visit, true);
 		for (Encounter encounter : encountersByVisit) {

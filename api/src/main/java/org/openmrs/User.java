@@ -71,7 +71,7 @@ public class User extends BaseOpenmrsObject implements java.io.Serializable, Att
 	@Column(name = "user_id")
 	private Integer userId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "person_id", nullable = false)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@Cascade(CascadeType.SAVE_UPDATE)

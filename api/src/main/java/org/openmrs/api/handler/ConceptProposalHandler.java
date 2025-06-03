@@ -16,7 +16,6 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.util.OpenmrsConstants;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link ConceptProposal} objects when they are saved via a save* method in
@@ -32,7 +31,6 @@ public class ConceptProposalHandler implements SaveHandler<ConceptProposal> {
 	 *      java.util.Date, java.lang.String)
 	 */
 	@Override
-	@Transactional
 	public void handle(ConceptProposal cp, User creator, Date dateCreated, String other) {
 		if (cp.getState() == null) {
 			cp.setState(OpenmrsConstants.CONCEPT_PROPOSAL_UNMAPPED);

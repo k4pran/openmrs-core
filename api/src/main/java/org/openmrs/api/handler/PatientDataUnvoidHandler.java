@@ -25,7 +25,6 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.context.Context;
 import org.openmrs.parameter.EncounterSearchCriteria;
 import org.openmrs.parameter.EncounterSearchCriteriaBuilder;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link Patient} objects when they are unvoided via the unvoid* method in an
@@ -43,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PatientDataUnvoidHandler implements UnvoidHandler<Patient> {
 	
 	@Override
-	@Transactional
 	public void handle(Patient patient, User originalVoidingUser, Date origParentVoidedDate, String unused) {
 		//can't be unvoiding a patient that doesn't exist in the database
 		if (patient.getId() != null) {

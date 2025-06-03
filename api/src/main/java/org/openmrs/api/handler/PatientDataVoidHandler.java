@@ -21,7 +21,6 @@ import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.context.Context;
 import org.openmrs.util.PrivilegeConstants;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link Patient} objects when they are voided via a void* method in an
@@ -44,7 +43,6 @@ public class PatientDataVoidHandler implements VoidHandler<Patient> {
 	 * <strong>Should</strong> void the orders encounters and observations associated with the patient
 	 */
 	@Override
-	@Transactional
 	public void handle(Patient patient, User voidingUser, Date voidedDate, String voidReason) {
 		//void all the encounters associated with this patient
 		EncounterService es = Context.getEncounterService();

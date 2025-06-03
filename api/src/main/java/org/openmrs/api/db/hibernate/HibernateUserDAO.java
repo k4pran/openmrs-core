@@ -651,9 +651,17 @@ public class HibernateUserDAO implements UserDAO {
 					String key = "name" + ++counter;
 					String value = n + "%";
 					namesMap.put(key, value);
-					criteria.add("(user.username like :" + key + " or user.systemId like :" + key
-					        + " or name.givenName like :" + key + " or name.middleName like :" + key
-					        + " or name.familyName like :" + key + " or name.familyName2 like :" + key + ")");
+					criteria.add(
+						"("
+							+ " user.username    like :" + key + " ESCAPE '\\' "
+							+ "or user.systemId     like :" + key + " ESCAPE '\\' "
+							+ "or name.givenName    like :" + key + " ESCAPE '\\' "
+							+ "or name.middleName   like :" + key + " ESCAPE '\\' "
+							+ "or name.familyName   like :" + key + " ESCAPE '\\' "
+							+ "or name.familyName2  like :" + key + " ESCAPE '\\'"
+							+ ")"
+					);
+
 				}
 			}
 		}

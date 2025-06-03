@@ -16,7 +16,6 @@ import org.openmrs.ConceptReferenceTermMap;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link ConceptReferenceTerm} objects when they are saved via a save* method
@@ -40,7 +39,6 @@ public class ConceptReferenceTermSaveHandler implements SaveHandler<ConceptRefer
 	 *      org.openmrs.User, java.util.Date, java.lang.String)
 	 */
 	@Override
-	@Transactional
 	public void handle(ConceptReferenceTerm conceptReferenceTerm, User currentUser, Date currentDate, String other) {
 		if (conceptReferenceTerm.getConceptReferenceTermMaps() != null) {
 			for (ConceptReferenceTermMap map : conceptReferenceTerm.getConceptReferenceTermMaps()) {

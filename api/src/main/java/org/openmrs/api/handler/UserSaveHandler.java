@@ -18,7 +18,6 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
 import org.openmrs.api.context.Context;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class deals with {@link User} objects when they are saved via a save* method in an Openmrs
@@ -37,7 +36,6 @@ public class UserSaveHandler implements SaveHandler<User> {
 	 *      java.util.Date, java.lang.String)
 	 */
 	@Override
-	@Transactional
 	public void handle(User user, User creator, Date dateCreated, String other) {
 		// if the user doesn't have a system id, generate one
 		if (StringUtils.isEmpty(user.getSystemId())) {

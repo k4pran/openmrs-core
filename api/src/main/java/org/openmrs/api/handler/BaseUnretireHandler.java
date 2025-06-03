@@ -15,7 +15,6 @@ import org.openmrs.Retireable;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is the super interface for all unretire* actions that take place on all services. The
@@ -50,7 +49,6 @@ public class BaseUnretireHandler implements UnretireHandler<Retireable> {
 	 * <strong>Should</strong> not act on retired objects with a different dateRetired
 	 */
 	@Override
-	@Transactional
 	public void handle(Retireable retireableObject, User retiringUser, Date origParentRetiredDate, String unused) {
 		
 		// only act on retired objects

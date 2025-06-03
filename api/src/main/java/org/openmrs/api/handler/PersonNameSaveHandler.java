@@ -14,7 +14,6 @@ import java.util.Date;
 import org.openmrs.PersonName;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is called every time a {@link PersonName} object is saved. The current implemention just
@@ -29,7 +28,6 @@ public class PersonNameSaveHandler implements SaveHandler<PersonName> {
 	 *      java.util.Date, java.lang.String)
 	 */
 	@Override
-	@Transactional
 	public void handle(PersonName personName, User creator, Date dateCreated, String other) {
 		if (personName.getGivenName() != null) {
 			personName.setGivenName(personName.getGivenName().trim());

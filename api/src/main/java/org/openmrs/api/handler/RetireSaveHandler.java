@@ -15,7 +15,6 @@ import org.openmrs.Retireable;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.aop.RequiredDataAdvice;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This handler makes sure the when a retired object is saved with the retired bit set to true, the
@@ -61,7 +60,6 @@ public class RetireSaveHandler implements SaveHandler<Retireable> {
 	 * <strong>Should</strong> set retiredBy to null if retired is true
 	 */
 	@Override
-	@Transactional
 	public void handle(Retireable retireableObject, User currentUser, Date currentDate, String notUsed) {
 		
 		// retire reason is not set here, it should be set prior to this method
