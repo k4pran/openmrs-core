@@ -9,19 +9,21 @@
  */
 package org.openmrs.api.db.hibernate;
 
-import java.io.Serializable;
+import java.util.EnumSet;
 import java.util.Properties;
 
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.generator.EventType;
 import org.hibernate.id.Configurable;
+import org.hibernate.id.IdentifierGenerator;
+import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.id.IdentityGenerator;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
-
-import static org.hibernate.id.IdentifierGenerator.ENTITY_NAME;
+import org.openmrs.Concept;
 
 /**
  * <b>native-if-not-assigned</b><br>
@@ -35,21 +37,16 @@ import static org.hibernate.id.IdentifierGenerator.ENTITY_NAME;
  * 
  * @author paul.shemansky@gmail.com
  */
-public class NativeIfNotAssignedIdentityGenerator extends IdentityGenerator implements Configurable {
+public class NativeIfNotAssignedIdentityGenerator extends IdentityGenerator implements IdentifierGenerator, Configurable {
 	
 	private String entityName;
 	
-//	@Override
-//	public Serializable generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
-//		Serializable id;
-//		EntityPersister persister = session.getEntityPersister(entityName, entity);
-//		// Determine if an ID has been assigned.
-//		id = persister.getIdentifier(entity, session);
-//		if (id == null) {
-//			id = super.generate(session, entity);
-//		}
-//		return id;
-//	}
+	@Override
+	public Object generate(SharedSessionContractImplementor session, Object entity) throws HibernateException {
+		EntityPersister persister = session.getEntityPersister(entityName, entity);
+		// Determine if an ID has been assigned.
+		return persister.getIdentifier(entity, session);
+	}
 
 	@Override
 	public void configure(Type type, Properties params, ServiceRegistry serviceRegistry) throws MappingException {
@@ -57,5 +54,21 @@ public class NativeIfNotAssignedIdentityGenerator extends IdentityGenerator impl
 		if (entityName == null) {
 			throw new MappingException("no entity name");
 		}
+	}
+
+	@Override
+	public EnumSet<EventType> getEventTypes() {
+		return super.getEventTypes();
+	}
+
+	@Override
+	public boolean generatedOnExecution() {
+		return super.generatedOnExecution();
+	}
+
+	@Override
+	public boolean generatedOnExecution(Object entity, SharedSessionContractImplementor session) {
+		EntityPersister persister = session.getEntityPersister(entityName, entity);
+		return persister.getIdentifier(entity, session) == null;
 	}
 }

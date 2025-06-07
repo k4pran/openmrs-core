@@ -2151,16 +2151,17 @@ public class HibernateConceptDAO implements ConceptDAO {
 								 Collection<ConceptMapType> withAnyOfTheseTypesOrOrderOfPreference) throws DAOException {
 		Session session = sessionFactory.getCurrentSession();
 		CriteriaBuilder cb = session.getCriteriaBuilder();
-		CriteriaQuery<Drug> cq = cb.createQuery(Drug.class);
-		Root<Drug> drugRoot = cq.from(Drug.class);
-
-		Join<Drug, DrugReferenceMap> drugReferenceMapJoin = drugRoot.join("drugReferenceMaps");
-		Join<DrugReferenceMap, ConceptReferenceTerm> termJoin = drugReferenceMapJoin.join("conceptReferenceTerm");
-
-		List<Predicate> basePredicates = createSearchDrugByMappingPredicates(cb, drugRoot, drugReferenceMapJoin, termJoin, code, conceptSource, true);
 
 		if (!withAnyOfTheseTypesOrOrderOfPreference.isEmpty()) {
+
 			for (ConceptMapType conceptMapType : withAnyOfTheseTypesOrOrderOfPreference) {
+				CriteriaQuery<Drug> cq = cb.createQuery(Drug.class);
+				Root<Drug> drugRoot = cq.from(Drug.class);
+
+				Join<Drug, DrugReferenceMap> drugReferenceMapJoin = drugRoot.join("drugReferenceMaps");
+				Join<DrugReferenceMap, ConceptReferenceTerm> termJoin = drugReferenceMapJoin.join("conceptReferenceTerm");
+
+				List<Predicate> basePredicates = createSearchDrugByMappingPredicates(cb, drugRoot, drugReferenceMapJoin, termJoin, code, conceptSource, true);
 				
 				List<Predicate> predicates = new ArrayList<>(basePredicates);
 				predicates.add(cb.equal(drugReferenceMapJoin.get("conceptMapType"), conceptMapType));
@@ -2175,6 +2176,14 @@ public class HibernateConceptDAO implements ConceptDAO {
 				}
 			}
 		} else {
+			CriteriaQuery<Drug> cq = cb.createQuery(Drug.class);
+			Root<Drug> drugRoot = cq.from(Drug.class);
+
+			Join<Drug, DrugReferenceMap> drugReferenceMapJoin = drugRoot.join("drugReferenceMaps");
+			Join<DrugReferenceMap, ConceptReferenceTerm> termJoin = drugReferenceMapJoin.join("conceptReferenceTerm");
+
+			List<Predicate> basePredicates = createSearchDrugByMappingPredicates(cb, drugRoot, drugReferenceMapJoin, termJoin, code, conceptSource, true);
+
 			cq.where(basePredicates.toArray(new Predicate[]{}));
 
 			TypedQuery<Drug> query = session.createQuery(cq);
@@ -2187,8 +2196,7 @@ public class HibernateConceptDAO implements ConceptDAO {
 		}
 		return null;
 	}
-
-
+	
 	/**
 	 * @see ConceptDAO#getAllConceptAttributeTypes()
 	 */

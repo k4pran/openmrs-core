@@ -32,7 +32,10 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.BasicType;
 import org.hibernate.type.Type;
+import org.hibernate.type.internal.NamedBasicTypeImpl;
 import org.openmrs.GlobalProperty;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Patient;
@@ -261,16 +264,15 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 	@Override
 	public void validate(Object object, Errors errors) throws DAOException {
 		Class entityClass = object.getClass();
-		ClassMetadata metadata = null;
+		EntityPersister metadata = null;
 		try {
 			SessionFactoryImplementor sfi =
 				sessionFactory.unwrap(SessionFactoryImplementor.class);
 			
 			metadata =
-				(AbstractEntityPersister)
 					sfi.getRuntimeMetamodels()
 						.getMappingMetamodel()
-						.getEntityDescriptor(Patient.class);
+						.getEntityDescriptor(entityClass);
 			
 		}
 		catch (MappingException ex) {
@@ -281,7 +283,7 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 			Type identifierType = metadata.getIdentifierType();
 			String identifierName = metadata.getIdentifierPropertyName();
 			
-			if (identifierType.getReturnedClass().isInstance(String.class)) {
+			if (identifierType instanceof BasicType<?> && String.class.equals(((BasicType<?>) identifierType).getJavaTypeDescriptor().getJavaType())) {
 				long maxLength = getMaximumPropertyLength(entityClass, identifierName);
 				String identifierValue = (String) metadata.getIdentifier(object,
 				    (SessionImplementor) sessionFactory.getCurrentSession());
@@ -296,7 +298,7 @@ public class HibernateAdministrationDAO implements AdministrationDAO, Applicatio
 			}
 			for (String propName : propNames) {
 				Type propType = metadata.getPropertyType(propName);
-				if (propType.getReturnedClass().isInstance(String.class)) {
+				if (propType instanceof BasicType<?> && String.class.equals(((BasicType<?>) propType).getJavaTypeDescriptor().getJavaType())) {
 					String propertyValue = (String) metadata.getPropertyValue(object, propName);
 					if (propertyValue != null) {
 						long maxLength = getMaximumPropertyLength(entityClass, propName);

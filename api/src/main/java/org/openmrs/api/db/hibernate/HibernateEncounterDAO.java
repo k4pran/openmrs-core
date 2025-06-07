@@ -639,10 +639,11 @@ public class HibernateEncounterDAO implements EncounterDAO {
 		// Query for Encounters
 		CriteriaQuery<Encounter> encounterQuery = cb.createQuery(Encounter.class);
 		Root<Encounter> encounterRoot = encounterQuery.from(Encounter.class);
+
 		encounterQuery.where(createEncountersByPatientPredicates(cb, encounterRoot, patient, includeVoided, query)
 			.toArray(new Predicate[]{}));
 		encounterQuery.orderBy(
-			cb.desc(encounterRoot.get("visit").get("startDatetime")),
+//			cb.desc(encounterRoot.get("visit").get("startDatetime")),
 			cb.desc(encounterRoot.get("visit").get("visitId")),
 			cb.desc(encounterRoot.get("encounterDatetime")),
 			cb.desc(encounterRoot.get("encounterId")));
